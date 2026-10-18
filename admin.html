@@ -263,7 +263,7 @@ async function orders(load=true){
   if(load){OR=(await sb.from('orders').select('*').order('created_at',{ascending:false})).data||[];OS.clear()}
   const L=OR.filter(o=>OF==='all'||(OF==='unpaid'?o.pay_status==='pending':o.stage===OF));
   const fl=[['all','Semua'],['unpaid','Belum bayar'],['pending','Pending'],['ordered','Ordered'],['arrived','Arrived'],['completed','Completed']];
-  $('#mn').innerHTML=`<div class="bar"><h2>Pesanan (${L.length})</h2><button class="btn r" id="dsel" style="display:none"></button></div><div class="tabs" style="margin-bottom:12px">${fl.map(f=>`<button class="tab ${OF===f[0]?'on':''}" data-of="${f[0]}">${f[1]}</button>`).join('')}</div>`+(L.length?`<label class="chk" style="margin:0 0 10px"><input type="checkbox" id="oall"> Pilih semua yang tampil</label>`:'')+(L.map(o=>{const n=NX[o.stage];return `<div class="row" style="flex-wrap:wrap"><input type="checkbox" data-os="${o.id}" ${OS.has(o.id)?'checked':''}><div><b>${esc(o.po)} <span class="pill ${o.pay_status==='pending'?'o':''}">${PS[o.pay_status]||o.pay_status}</span><span class="pill o">${ST[o.stage]||o.stage}</span></b><small>${esc(o.customer_name)} · ${esc(o.customer_wa)} · ${dt(o.created_at)}<br>Total ${rp(o.total)} · Dibayar ${rp(o.paid)}</small></div>${n?`<button class="btn s" data-stg="${o.id}">${n[1]}</button>`:''}<button class="btn" data-inv="${o.id}">Invoice</button><button class="btn r" data-odel="${o.id}" title="Hapus pesanan">${ic('trash')}</button></div>`}).join('')||'<div class="empty">Tidak ada pesanan di filter ini. Pesanan muncul otomatis saat customer menekan Pesan via WhatsApp.</div>');
+  $('#mn').innerHTML=`<div class="bar"><h2>Pesanan (${L.length})</h2><button class="btn" id="mnew">${ic('plus')} Pesanan Manual</button><button class="btn r" id="dsel" style="display:none"></button></div><div class="tabs" style="margin-bottom:12px">${fl.map(f=>`<button class="tab ${OF===f[0]?'on':''}" data-of="${f[0]}">${f[1]}</button>`).join('')}</div>`+(L.length?`<label class="chk" style="margin:0 0 10px"><input type="checkbox" id="oall"> Pilih semua yang tampil</label>`:'')+(L.map(o=>{const n=NX[o.stage];return `<div class="row" style="flex-wrap:wrap"><input type="checkbox" data-os="${o.id}" ${OS.has(o.id)?'checked':''}><div><b>${esc(o.po)} <span class="pill ${o.pay_status==='pending'?'o':''}">${PS[o.pay_status]||o.pay_status}</span><span class="pill o">${ST[o.stage]||o.stage}</span></b><small>${esc(o.customer_name)} · ${esc(o.customer_wa)} · ${dt(o.created_at)}<br>Total ${rp(o.total)} · Dibayar ${rp(o.paid)}</small></div>${n?`<button class="btn s" data-stg="${o.id}">${n[1]}</button>`:''}<button class="btn" data-inv="${o.id}">Invoice</button><button class="btn r" data-odel="${o.id}" title="Hapus pesanan">${ic('trash')}</button></div>`}).join('')||'<div class="empty">Tidak ada pesanan di filter ini. Pesanan muncul otomatis saat customer menekan Pesan via WhatsApp.</div>');
   selUI();scrollTo(0,y);
 }
 function selUI(){
@@ -280,7 +280,7 @@ async function delOrders(ids){
 async function stg(id){
   const o=OR.find(x=>x.id==id),n=NX[o.stage];if(!n)return;
   const r=await sb.from('orders').update({stage:n[0]}).eq('id',id);if(r.error)return alert(r.error.message);
-  if(n[0]==='completed')for(const i of o.items||[]){const q=await sb.from('products').select('sold').eq('id',i.id).maybeSingle();if(q.data)await sb.from('products').update({sold:(q.data.sold||0)+(+i.qty||0)}).eq('id',i.id)}
+  if(n[0]==='completed')for(const i of o.items||[]){if(!i.id)continue;const q=await sb.from('products').select('sold').eq('id',i.id).maybeSingle();if(q.data)await sb.from('products').update({sold:(q.data.sold||0)+(+i.qty||0)}).eq('id',i.id)}
   orders();
 }
 function inv(id){
@@ -306,5 +306,56 @@ document.addEventListener('click',e=>{
   if(e.target.id==='oall'){const L=OR.filter(o=>OF==='all'||(OF==='unpaid'?o.pay_status==='pending':o.stage===OF));L.forEach(o=>e.target.checked?OS.add(o.id):OS.delete(o.id));document.querySelectorAll('[data-os]').forEach(c=>c.checked=e.target.checked);selUI()}
   if(g('data-os')){const c=g('data-os'),id=+c.dataset.os;c.checked?OS.add(id):OS.delete(id);selUI()}
 });
+/* ===== Pesanan manual ===== */
+let PR=[];
+const eff=p=>p.promo_price&&+p.promo_price<+p.price?+p.promo_price:+p.price;
+const mrow=()=>`<div class="rv mi"><select class="mp"><option value="">Tulis barang manual…</option>${PR.map(p=>`<option value="${p.id}">${esc(p.name)} – ${rp(eff(p))}</option>`).join('')}</select><input class="mn" placeholder="Nama barang (manual)" style="margin-top:8px"><select class="ms" style="display:none;margin-top:8px"></select><div style="display:flex;gap:8px;margin-top:8px"><input class="mq" type="number" min="1" value="1" placeholder="Qty"><input class="mpr" type="number" inputmode="numeric" placeholder="Harga satuan (Rp)"></div><button class="btn r" data-rmi style="margin-top:8px">${ic('trash')} Hapus barang</button></div>`;
+async function manual(){
+  PR=(await sb.from('products').select('id,name,price,promo_price,sizes').order('name')).data||[];
+  $('#sh').innerHTML=`<h2 style="margin-top:0">Pesanan Manual</h2><p style="color:var(--mu);font-size:13px;margin:0">No. PO dibuat otomatis. Invoice terbentuk setelah disimpan.</p><label>Nama customer</label><input id="mc"><label>Nomor WhatsApp</label><input id="mw" type="tel" inputmode="tel" placeholder="0812xxxxxxx"><label>Barang pesanan (pilih dari katalog, atau tulis manual)</label><div id="mis">${mrow()}</div><button class="btn s" id="addi" style="margin-top:4px">${ic('plus')} Tambah barang</button><div style="font-size:18px;font-weight:700;margin:14px 0 0">Total: <span id="mt">Rp0</span></div><label>Pembayaran awal / DP (Rp, opsional)</label><input id="mpay" type="number" inputmode="numeric"><div class="msg" id="mm"></div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn" id="msv">Simpan &amp; Buat Invoice</button><button class="btn s" onclick="document.getElementById('ov').classList.remove('on')">Batal</button></div>`;
+  $('#ov').classList.add('on');
+}
+function mtot(){let t=0;document.querySelectorAll('#mis .mi').forEach(r=>t+=(+r.querySelector('.mq').value||0)*(+r.querySelector('.mpr').value||0));const e=$('#mt');if(e)e.textContent=rp(t);return t}
+document.addEventListener('change',e=>{
+  if(!e.target.classList.contains('mp'))return;
+  const r=e.target.closest('.mi'),p=PR.find(x=>x.id==e.target.value),ms=r.querySelector('.ms'),mn=r.querySelector('.mn');
+  mn.style.display=p?'none':'';
+  if(p){r.querySelector('.mpr').value=eff(p);const sz=p.sizes||[];ms.innerHTML=sz.length?'<option value="">Pilih ukuran</option>'+sz.map(x=>`<option>${esc(x)}</option>`).join(''):'';ms.style.display=sz.length?'':'none'}
+  else{ms.style.display='none';ms.innerHTML=''}
+  mtot();
+});
+document.addEventListener('input',e=>{if(e.target.closest('#mis'))mtot()});
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('#mnew'))manual();
+  else if(t.closest('#addi'))$('#mis').insertAdjacentHTML('beforeend',mrow());
+  else if(t.closest('[data-rmi]')){const r=t.closest('.mi');if(document.querySelectorAll('#mis .mi').length>1){r.remove();mtot()}}
+  else if(t.closest('#msv'))msave();
+});
+async function msave(){
+  const err=m=>{$('#mm').textContent=m};
+  const n=$('#mc').value.trim();let w=$('#mw').value.replace(/\D/g,'');
+  if(n.length<2)return err('Nama customer wajib diisi.');
+  if(w.startsWith('0'))w='62'+w.slice(1);else if(w.startsWith('8'))w='62'+w;
+  if(w.length<10||w.length>15)return err('Nomor WhatsApp tidak valid.');
+  const items=[];
+  for(const r of document.querySelectorAll('#mis .mi')){
+    const p=PR.find(x=>x.id==r.querySelector('.mp').value),name=p?p.name:r.querySelector('.mn').value.trim(),pv=r.querySelector('.mpr').value;
+    if(!name&&pv==='')continue;
+    const ms=r.querySelector('.ms'),size=ms.style.display==='none'?'':ms.value;
+    if(!name)return err('Isi nama barang untuk semua baris.');
+    if(p&&(p.sizes||[]).length&&!size)return err('Pilih ukuran untuk '+name+'.');
+    if(pv===''||+pv<0)return err('Isi harga untuk '+name+'.');
+    items.push({id:p?p.id:null,name,size,qty:Math.max(1,+r.querySelector('.mq').value||1),price:+pv});
+  }
+  if(!items.length)return err('Tambahkan minimal satu barang.');
+  const total=items.reduce((a,x)=>a+x.price*x.qty,0),pay=+$('#mpay').value||0;
+  const payments=pay>0?[{date:new Date().toISOString(),amount:pay,note:'Pembayaran awal'}]:[];
+  const po='PO'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
+  $('#msv').disabled=true;
+  const r=await sb.from('orders').insert({po,customer_name:n,customer_wa:w,items,total,paid:pay,pay_status:pay<=0?'pending':pay>=total?'lunas':'dp',payments}).select().single();
+  if(r.error){$('#msv').disabled=false;return err('Gagal menyimpan: '+r.error.message)}
+  await orders();inv(r.data.id);
+}
 start();
 </script></body></html>
