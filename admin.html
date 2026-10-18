@@ -113,7 +113,7 @@ async function _show(t,keep){
   if(t==='excel')return excel();
   if(t==='settings'){const r=(await sb.from('settings').select('*').eq('id',1).maybeSingle()).data||{};mn.innerHTML=`<div class="bar"><h2>Pengaturan Website</h2><button class="btn" data-edit="1">${ic('edit')} Ubah</button></div><div class="row"><div><b>WhatsApp: ${esc(r.wa)}</b><small>${esc(r.hero_title)} · ${esc(r.hero_sub)}</small></div></div>`;window._set=r;return}
   const c=F[t],rows=(await sb.from(t).select('*').order(c.order,{ascending:t==='products'?false:true})).data||[];window._rows=rows;
-  mn.innerHTML=`<div class="bar"><h2>${c.t} (${rows.length})</h2><button class="btn" data-edit="">${ic('plus')} Tambah</button></div>`+(rows.map(r=>{
+  mn.innerHTML=`<div class="bar"><h2>${c.t} (${rows.length})</h2>${t==='products'?`<button class="btn s" id="dedup">${ic('trash')} Bersihkan dobel</button>`:''}<button class="btn" data-edit="">${ic('plus')} Tambah</button></div>`+(rows.map(r=>{
     const th=(r.photos||[])[0]||r.image||r.photo,nm=r.name||r.title,cn=(cats.find(x=>x.id===r.category_id)||{}).name;
     const sub=t==='products'?rp(r.price)+(r.promo_price?` → promo ${rp(r.promo_price)}`:'')+(cn?` · ${esc(cn)}`:'')+(r.sizes&&r.sizes.length?` · Ukuran: ${esc(r.sizes.join(', '))}`:''):t==='rentals'?rp(r.price)+' '+esc(r.unit||''):esc(r.subtitle||r.review||'');
     const pills=(r.in_stock===false?'<span class="pill o">Stok habis</span>':'')+(r.active===false?'<span class="pill o">Disembunyikan</span>':'');
@@ -225,26 +225,45 @@ function excel(){
       const col=(r,k)=>{const x=Object.keys(r).find(y=>y.trim().toLowerCase()===k);return x?r[x]:''};
       XR=rows.map(r=>{const pv=col(r,'harga');return{name:String(col(r,'nama')).trim(),cat:String(col(r,'kategori')).trim(),desc:String(col(r,'deskripsi')).trim(),price:typeof pv==='number'?pv:String(pv).replace(/[^\d]/g,'')}}).filter(r=>r.name);
       if(!XR.length){$('#dr').innerHTML='';return say('Tidak ada data terbaca. Pastikan baris pertama berisi judul kolom: nama, kategori, deskripsi.',1)}
-      say(`${XR.length} produk terbaca. Periksa dulu sebelum diimpor.`);xreview();
+      const ex=new Set(((await sb.from('products').select('name')).data||[]).map(q=>nk(q.name))),seen=new Set();
+      XR.forEach(r=>{const k=nk(r.name);r.dup=ex.has(k)?'katalog':seen.has(k)?'file':'';seen.add(k)});
+      const nb=XR.filter(r=>!r.dup).length;
+      say(`${XR.length} baris terbaca: ${nb} produk baru, ${XR.length-nb} dilewati karena sudah ada.`);xreview();
     }catch(x){say('File tidak bisa dibaca: '+(x.message||x),1)}
   };
 }
+const nk=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
 function xreview(){
-  const known=n=>cats.some(c=>c.name.toLowerCase()===n.toLowerCase());
-  $('#dr').innerHTML=`<h3>Pratinjau (${XR.length} produk)</h3>`+XR.slice(0,50).map(r=>`<div class="row"><div><b>${esc(r.name)}${r.cat?`<span class="pill ${known(r.cat)?'':'o'}">${esc(r.cat)}${known(r.cat)?'':' (baru)'}</span>`:''}</b><small>${esc(r.desc)||'Tanpa deskripsi'}${r.price!==''?' · '+rp(r.price):''}</small></div></div>`).join('')+(XR.length>50?`<div class="empty">…dan ${XR.length-50} produk lainnya</div>`:'')+`<button class="btn" id="xi" style="margin-top:8px">${ic('plus')} Impor ${XR.length} produk</button>`;
+  const known=n=>cats.some(c=>c.name.toLowerCase()===n.toLowerCase()),nb=XR.filter(r=>!r.dup).length;
+  $('#dr').innerHTML=`<h3>Pratinjau: ${nb} produk baru, ${XR.length-nb} dilewati</h3>`+XR.slice(0,60).map(r=>`<div class="row" style="${r.dup?'opacity:.5':''}"><div><b>${esc(r.name)}${r.dup?`<span class="pill o">${r.dup==='katalog'?'Sudah ada di katalog – dilewati':'Dobel di file – dilewati'}</span>`:(r.cat?`<span class="pill ${known(r.cat)?'':'o'}">${esc(r.cat)}${known(r.cat)?'':' (baru)'}</span>`:'')}</b><small>${esc(r.desc)||'Tanpa deskripsi'}${r.price!==''?' · '+rp(r.price):''}</small></div></div>`).join('')+(XR.length>60?`<div class="empty">…dan ${XR.length-60} baris lainnya</div>`:'')+`<button class="btn" id="xi" style="margin-top:8px" ${nb?'':'disabled'}>${ic('plus')} Impor ${nb} produk baru</button>`;
   $('#xi').onclick=ximport;
 }
 async function ximport(){
   $('#xi').disabled=true;
   try{
+    const ex=new Set(((await sb.from('products').select('name')).data||[]).map(q=>nk(q.name)));
+    const NW=XR.filter(r=>!r.dup&&!ex.has(nk(r.name)));
+    if(!NW.length){say('Tidak ada produk baru untuk diimpor.');XR=[];$('#dr').innerHTML='';return}
     let list=[...cats];
-    const need=[...new Set(XR.map(r=>r.cat).filter(c=>c&&!list.some(x=>x.name.toLowerCase()===c.toLowerCase())))];
+    const need=[...new Set(NW.map(r=>r.cat).filter(c=>c&&!list.some(x=>x.name.toLowerCase()===c.toLowerCase())))];
     if(need.length){const r=await sb.from('categories').insert(need.map((name,i)=>({name,sort:list.length+i}))).select();if(r.error)throw r.error;list=list.concat(r.data)}
-    const rows=XR.map(r=>({name:r.name,description:r.desc||null,price:r.price===''?0:+r.price,category_id:(list.find(x=>x.name.toLowerCase()===r.cat.toLowerCase())||{}).id||null,photos:[],in_stock:true,active:true}));
+    const rows=NW.map(r=>({name:r.name,description:r.desc||null,price:r.price===''?0:+r.price,category_id:(list.find(x=>x.name.toLowerCase()===r.cat.toLowerCase())||{}).id||null,photos:[],in_stock:true,active:true}));
     for(let i=0;i<rows.length;i+=100){const r=await sb.from('products').insert(rows.slice(i,i+100));if(r.error)throw r.error}
-    say(`Selesai! ${rows.length} produk ditambahkan. Tambahkan foto lewat tab Produk, tombol Edit.`);XR=[];$('#dr').innerHTML='';cats=(await sb.from('categories').select('*').order('sort')).data||[];
+    say(`Selesai! ${rows.length} produk baru ditambahkan, ${XR.length-rows.length} dilewati karena sudah ada. Tambahkan foto lewat tab Produk, tombol Edit.`);XR=[];$('#dr').innerHTML='';cats=(await sb.from('categories').select('*').order('sort')).data||[];
   }catch(e){say('Gagal: '+(e.message||e),1);$('#xi').disabled=false}
 }
+async function dedup(){
+  const rows=(await sb.from('products').select('id,name,photos,created_at').order('created_at')).data||[],g={},del=[];
+  rows.forEach(r=>(g[nk(r.name)]=g[nk(r.name)]||[]).push(r));
+  Object.values(g).forEach(a=>{if(a.length<2)return;a.sort((x,y)=>((y.photos||[]).length-(x.photos||[]).length)||(new Date(x.created_at)-new Date(y.created_at)));a.slice(1).forEach(r=>del.push(r))});
+  if(!del.length)return alert('Tidak ada produk dobel. Katalog sudah bersih.');
+  if(!confirm(`Ditemukan ${del.length} produk dobel (nama sama).\nYang dipertahankan: satu produk per nama, yaitu yang fotonya paling banyak (jika sama, yang paling lama).\n\nContoh yang akan dihapus:\n${del.slice(0,8).map(r=>'- '+r.name).join('\n')}\n\nHapus sekarang? Tidak bisa dibatalkan.`))return;
+  const r=await sb.from('products').delete().in('id',del.map(x=>x.id));
+  if(r.error)return alert('Gagal menghapus: '+r.error.message);
+  alert(del.length+' produk dobel berhasil dihapus.');show('products');
+}
+document.addEventListener('click',e=>{if(e.target.closest('#dedup'))dedup()});
+
 /* ===== Dashboard, Pesanan, Invoice ===== */
 const ST={pending:'Pending',ordered:'Ordered',arrived:'Arrived',completed:'Completed'},NX={pending:['ordered','Ordered'],ordered:['arrived','Arrived'],arrived:['completed','Complete']},PS={pending:'Pending',dp:'DP',lunas:'Payment'};
 let OR=[];
