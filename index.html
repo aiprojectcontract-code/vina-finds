@@ -122,6 +122,19 @@ footer a,.fl{display:flex;gap:10px;align-items:center;margin-bottom:12px;color:#
 #grid .ph,.sld .ph{font-size:22px}
 .sld .card{width:118px}.cc{width:80px}.cc i{width:60px;height:60px}.cc span{font-size:11px}
 }
+.po{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:linear-gradient(120deg,#1b6fc4,#38b6e0);color:#fff;border-radius:22px;padding:18px 24px;margin-top:16px;box-shadow:0 10px 30px #2f8fe833}
+.po h3{margin:0;font-size:17px;display:flex;gap:8px;align-items:center}.po small{opacity:.92;display:block;margin-top:4px;font-size:13px}
+.cd{display:flex;gap:8px}.cd div{background:#ffffff26;border-radius:12px;min-width:62px;text-align:center;padding:8px 6px}.cd b{display:block;font-size:24px;line-height:1.1}.cd span{font-size:11px;opacity:.92}
+.eta{display:flex;align-items:center;gap:12px}.eta>.i{font-size:30px}
+@media(max-width:600px){.po{padding:14px;border-radius:16px;gap:12px}.cd{width:100%}.cd div{flex:1;min-width:0}.cd b{font-size:20px}}
+@media(max-width:600px){
+.ps{padding-top:30px}.ps .st{font-size:21px}.ps>p{font-size:13px;margin-bottom:16px}
+.sg{grid-template-columns:1fr 1fr;gap:10px}
+.sp{padding:14px;border-radius:18px;box-shadow:0 4px 14px #2f8fe814}
+.sp em{font-size:26px;right:12px;top:10px}
+.sp span{width:38px;height:38px;font-size:17px;margin-bottom:10px;box-shadow:0 4px 10px #2f8fe84d}
+.sp h3{font-size:14px;margin:0 0 4px;line-height:1.25}.sp p{font-size:12px;line-height:1.5}
+}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
@@ -153,6 +166,7 @@ footer a,.fl{display:flex;gap:10px;align-items:center;margin-bottom:12px;color:#
 <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
 <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
 </defs></svg>
 <header><div class="hd w">
   <a class="brand" href="#home"><div class="lg" id="hl"><img src="data:image/png;base64,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" alt="Vina Finds"></div><div><div class="bn">VINA FINDS</div><div class="bt">INTO THE BLUE | DIVE EQUIPMENT</div></div></a>
@@ -161,6 +175,7 @@ footer a,.fl{display:flex;gap:10px;align-items:center;margin-bottom:12px;color:#
   <button class="ct" id="ct" aria-label="Keranjang"><svg class="i"><use href="#i-cart"/></svg><b id="cc">0</b></button>
 </div></header>
 <div id="pg-home">
+<div class="w" id="po" style="display:none"></div>
 <div class="hero" id="home"><div class="w">
   <div><span class="tag" id="hb">IMPORT DIVE EQUIPMENT</span><h1 id="ht">Import Produk Sport</h1><h2 id="hs">Berkualitas dari China</h2><p id="hd">Menyediakan perlengkapan Diving, Swimming, Outdoor dan Fitness berkualitas langsung dari supplier terpercaya di China.</p>
   <div class="bs"><a class="b b1" href="#produk"><svg class="i"><use href="#i-box"/></svg> Lihat Produk</a><a class="b b2" id="hwa" target="_blank" rel="noopener"><svg class="i"><use href="#i-chat"/></svg> Hubungi WhatsApp</a></div></div>
@@ -180,12 +195,7 @@ footer a,.fl{display:flex;gap:10px;align-items:center;margin-bottom:12px;color:#
 <section id="testi" class="w" style="display:none"><h2 class="st">Testimoni</h2><div class="sld" id="tsl"></div></section>
 <section id="rentpv" class="w" style="display:none"><div class="sbar"><h2 class="st" style="margin:0">Dive Rent</h2><a class="b b1" href="#rent" style="padding:10px 18px">Lihat semua</a></div><div class="grid" id="rpv"></div></section>
 <section id="kontak" class="w"><h2 class="st">Kontak</h2><div class="kg" id="kg"></div></section>
-<section class="w ps"><h2 class="st" style="margin-bottom:8px">Proses Pemesanan</h2><p>Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.</p><div class="sg">
-<div class="sp"><em>01</em><span><svg class="i"><use href="#i-search"/></svg></span><h3>Pilih Produk</h3><p>Pilih produk import sesuai kebutuhan Anda melalui katalog kami.</p></div>
-<div class="sp"><em>02</em><span><svg class="i"><use href="#i-chat"/></svg></span><h3>Hubungi WhatsApp</h3><p>Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.</p></div>
-<div class="sp"><em>03</em><span><svg class="i"><use href="#i-wallet"/></svg></span><h3>Pembayaran</h3><p>Admin akan mengirim total invoice beserta estimasi waktu pengiriman.</p></div>
-<div class="sp"><em>04</em><span><svg class="i"><use href="#i-truck"/></svg></span><h3>Packing &amp; Pengiriman</h3><p>Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.</p></div>
-</div></section>
+<section class="w ps" id="proses"><h2 class="st" id="pst" style="margin-bottom:8px"></h2><p id="pss"></p><div class="sg" id="psg"></div></section>
 </div>
 <div id="pg-rent" style="display:none"><section class="w"><h2 class="st">Dive Rent</h2><p class="d">Sewa perlengkapan diving untuk trip kamu. Pilih alat, lalu pesan lewat WhatsApp.</p><div class="grid" id="rgrid" style="margin-top:16px"></div></section></div>
 <div id="pg-prod" style="display:none"></div>
@@ -266,6 +276,27 @@ function foot(){
   const u=(v,h)=>/^https?:/.test(v)?v:h+v.replace('@','');
   $('#fso').innerHTML=(S.instagram?`<a target="_blank" rel="noopener" href="${esc(u(S.instagram,'https://instagram.com/'))}" aria-label="Instagram">${ic('instagram')}</a>`:'')+(S.facebook?`<a target="_blank" rel="noopener" href="${esc(u(S.facebook,'https://facebook.com/'))}" aria-label="Facebook">${ic('facebook')}</a>`:'');
 }
+function po(){
+  const el=$('#po'),c=S.po_close?new Date(S.po_close):null,a=S.po_arrival;
+  if(!c&&!a){el.style.display='none';return}
+  el.style.display='';
+  const fd=d=>d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'});
+  el.innerHTML=`<div class="po"><div><h3>${ic('tag')} Pre Order${S.po_label?' – '+esc(S.po_label):''}</h3>${c?`<small>Ditutup ${c.toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</small>`:''}</div>${c?'<div class="cd" id="cd"></div>':''}${a?`<div class="eta">${ic('calendar')}<div><small style="margin:0">Estimasi tiba di Indonesia</small><h3>${fd(new Date(a+'T12:00:00+07:00'))}</h3></div></div>`:''}</div>`;
+  tick();
+}
+function tick(){
+  const cd=$('#cd');if(!cd||!S.po_close)return;
+  const ms=new Date(S.po_close)-Date.now();
+  if(ms<=0){cd.innerHTML='<div style="padding:12px 16px"><b style="font-size:16px">Pre Order Ditutup</b></div>';return}
+  cd.innerHTML=[[Math.floor(ms/864e5),'Hari'],[Math.floor(ms/36e5)%24,'Jam'],[Math.floor(ms/6e4)%60,'Menit'],[Math.floor(ms/1e3)%60,'Detik']].map(x=>`<div><b>${String(x[0]).padStart(2,'0')}</b><span>${x[1]}</span></div>`).join('');
+}
+setInterval(tick,1000);
+const PD={proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
+function proses(){
+  const g=k=>S[k]||PD[k];
+  $('#pst').textContent=g('proses_title');$('#pss').textContent=g('proses_sub');
+  $('#psg').innerHTML=['search','chat','wallet','truck'].map((n,i)=>`<div class="sp"><em>0${i+1}</em><span>${ic(n)}</span><h3>${esc(g('proses'+(i+1)+'_t'))}</h3><p>${esc(g('proses'+(i+1)+'_d'))}</p></div>`).join('');
+}
 function count(){const n=Object.values(cart).reduce((a,b)=>a+b,0),c=$('#cc');c.textContent=n;c.style.display=n?'flex':'none'}
 function open(h){$('#sh').innerHTML=`<button class="x" data-x>${ic('x')}</button>`+h;$('#ov').classList.add('on')}
 const close=()=>$('#ov').classList.remove('on');
@@ -335,5 +366,5 @@ function route(){
 addEventListener('hashchange',route);
 $('#q').addEventListener('input',()=>{if(/^#(rent|p-)/.test(location.hash))location.hash='#produk';render();if($('#q').value)$('#produk').scrollIntoView()});
 $('#so').addEventListener('change',render);
-count();load().then(()=>{head();banners();render();extra();foot();route()}).catch(()=>{$('#grid').innerHTML='<div class="empty">Produk belum dapat dimuat.</div>'});
+count();proses();load().then(()=>{head();banners();po();proses();render();extra();foot();route()}).catch(()=>{$('#grid').innerHTML='<div class="empty">Produk belum dapat dimuat.</div>'});
 </script></body></html>
