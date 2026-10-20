@@ -79,7 +79,8 @@ const F={
  rentals:{t:'Dive Rent',ic:'anchor',order:'sort',f:[['name','Nama alat sewa','text'],['price','Harga sewa (Rp)','num'],['unit','Satuan (contoh: per hari)','text'],['description','Deskripsi singkat','area'],['photos','Foto (maksimal 5)','imgs'],['active','Tampilkan di website','chk'],['sort','Urutan tampil','num']]},
  excel:{t:'Impor Excel',ic:'sheet'},
  drive:{t:'Impor Drive (AI)',ic:'spark'},
- settings:{t:'Pengaturan',ic:'gear',f:[['wa','Nomor WhatsApp (format 62812xxxx)','text'],['logo','Logo bulat','img'],['hero_image','Gambar utama landing page (PNG transparan paling bagus)','img'],['hero_badge','Teks badge','text'],['hero_title','Judul besar','text'],['hero_sub','Sub judul','text'],['hero_desc','Deskripsi landing page','area'],['instagram','Instagram (username atau link)','text'],['wa_group','Link grup WhatsApp (https://chat.whatsapp.com/...)','text'],['facebook','Facebook (username atau link)','text'],['email','Email toko','text'],['address','Alamat toko','area']]}
+ proses:{t:'Proses Pemesanan',ic:'sheet',f:[['proses_title','Judul bagian','text'],['proses_sub','Kalimat pengantar','area'],['proses1_t','Langkah 1: judul','text'],['proses1_d','Langkah 1: penjelasan','area'],['proses2_t','Langkah 2: judul','text'],['proses2_d','Langkah 2: penjelasan','area'],['proses3_t','Langkah 3: judul','text'],['proses3_d','Langkah 3: penjelasan','area'],['proses4_t','Langkah 4: judul','text'],['proses4_d','Langkah 4: penjelasan','area']]},
+ settings:{t:'Pengaturan',ic:'gear',f:[['po_label','Pre Order: nama batch (contoh: Batch Oktober)','text'],['po_close','Pre Order: tanggal & jam ditutup (kosongkan untuk menyembunyikan hitung mundur)','dt'],['po_arrival','Pre Order: estimasi tiba di Indonesia','date'],['wa','Nomor WhatsApp (format 62812xxxx)','text'],['logo','Logo bulat','img'],['hero_image','Gambar utama landing page (PNG transparan paling bagus)','img'],['hero_badge','Teks badge','text'],['hero_title','Judul besar','text'],['hero_sub','Sub judul','text'],['hero_desc','Deskripsi landing page','area'],['instagram','Instagram (username atau link)','text'],['wa_group','Link grup WhatsApp (https://chat.whatsapp.com/...)','text'],['facebook','Facebook (username atau link)','text'],['email','Email toko','text'],['address','Alamat toko','area']]}
 };
 let tab='dashboard',cats=[];
 function shrink(file,m=1400,jpg=false){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);const png=!jpg&&file.type==='image/png';c.toBlob(b=>b?res([b,png?'png':'jpg']):rej(),png?'image/png':'image/jpeg',.85)};im.onerror=rej;im.src=u})}
@@ -108,10 +109,11 @@ async function _show(t,keep){
   const mn=$('#mn');if(!keep)mn.innerHTML='<div class="empty">Memuat…</div>';
   cats=(await sb.from('categories').select('*').order('sort')).data||[];
   if(t==='dashboard')return dash();
+  if(t==='proses')return prosesTab();
   if(t==='orders')return orders();
   if(t==='drive')return drive();
   if(t==='excel')return excel();
-  if(t==='settings'){const r=(await sb.from('settings').select('*').eq('id',1).maybeSingle()).data||{};mn.innerHTML=`<div class="bar"><h2>Pengaturan Website</h2><button class="btn" data-edit="1">${ic('edit')} Ubah</button></div><div class="row"><div><b>WhatsApp: ${esc(r.wa)}</b><small>${esc(r.hero_title)} · ${esc(r.hero_sub)}</small></div></div>`;window._set=r;return}
+  if(t==='settings'){const r=(await sb.from('settings').select('*').eq('id',1).maybeSingle()).data||{};mn.innerHTML=`<div class="bar"><h2>Pengaturan Website</h2><button class="btn" data-edit="1">${ic('edit')} Ubah</button></div><div class="row"><div><b>WhatsApp: ${esc(r.wa)}</b><small>${esc(r.hero_title)} · ${esc(r.hero_sub)}<br>Close Pre Order: ${r.po_close?new Date(r.po_close).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'belum diatur'} · Tiba di Indonesia: ${r.po_arrival||'belum diatur'}</small></div></div>`;window._set=r;return}
   const c=F[t],rows=(await sb.from(t).select('*').order(c.order,{ascending:t==='products'?false:true})).data||[];window._rows=rows;
   mn.innerHTML=`<div class="bar"><h2>${c.t} (${rows.length})</h2>${t==='products'?`<button class="btn s" id="dedup">${ic('trash')} Bersihkan dobel</button>`:''}<button class="btn" data-edit="">${ic('plus')} Tambah</button></div>`+(rows.map(r=>{
     const th=(r.photos||[])[0]||r.image||r.photo,nm=r.name||r.title,cn=(cats.find(x=>x.id===r.category_id)||{}).name;
@@ -120,14 +122,16 @@ async function _show(t,keep){
     return `<div class="row">${th?`<img src="${esc(th)}" alt="">`:`<span class="no">${ic(c.ic)}</span>`}<div><b>${esc(nm)}${pills}</b><small>${sub}</small></div><button class="btn s" data-edit="${r.id}">${ic('edit')}</button><button class="btn r" data-del="${r.id}">${ic('trash')}</button></div>`}).join('')||'<div class="empty">Belum ada data. Klik Tambah.</div>');
 }
 function form(id){
-  const t=tab,c=F[t],row=t==='settings'?window._set:(window._rows.find(r=>r.id==id)||{}),st={};
-  let h=`<h2 style="margin-top:0">${t==='settings'?'Pengaturan':(id?'Edit ':'Tambah ')+c.t}</h2>`;
+  const t=tab,c=F[t],row=t==='settings'||t==='proses'?window._set:(window._rows.find(r=>r.id==id)||{}),st={};
+  let h=`<h2 style="margin-top:0">${t==='settings'||t==='proses'?c.t:(id?'Edit ':'Tambah ')+c.t}</h2>`;
   c.f.forEach(([k,l,ty])=>{
     const v=row[k];st[k]=ty==='imgs'?[...(v||[])]:v;
     if(ty==='chk')return h+=`<label class="chk"><input type="checkbox" data-k="${k}" ${(v===undefined?k!=='best_seller':v)?'checked':''}> ${l}</label>`;
     h+=`<label>${l}</label>`;
     if(ty==='text')h+=`<input data-k="${k}" value="${esc(v)}">`;
     if(ty==='num')h+=`<input data-k="${k}" type="number" inputmode="decimal" value="${esc(v)}">`;
+    if(ty==='dt'){const d=v?new Date(v):null,z=d&&!isNaN(d)?new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,16):'';h+=`<input type="datetime-local" data-k="${k}" value="${z}">`}
+    if(ty==='date')h+=`<input type="date" data-k="${k}" value="${esc(v)}">`;
     if(ty==='tags')h+=`<input data-k="${k}" value="${esc((v||[]).join(', '))}">`;
     if(ty==='area')h+=`<textarea data-k="${k}" rows="3">${esc(v)}</textarea>`;
     if(ty==='cat')h+=`<select data-k="${k}"><option value="">– Tanpa kategori –</option>${cats.map(x=>`<option value="${x.id}" ${x.id===v?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`;
@@ -145,10 +149,10 @@ function form(id){
   $('#sv').onclick=async()=>{
     const o={};
     c.f.forEach(([k,,ty])=>{const el=$('#sh [data-k="'+k+'"]');
-      if(ty==='chk')o[k]=el.checked;else if(ty==='tags')o[k]=el.value.split(',').map(x=>x.trim()).filter(Boolean);else if(ty==='num')o[k]=el.value===''?null:+el.value;else if(ty==='cat')o[k]=el.value?+el.value:null;else if(ty==='img'||ty==='imgs')o[k]=st[k]||(ty==='imgs'?[]:null);else o[k]=el.value.trim()||null});
-    if(t!=='settings'&&!(o.name||o.title)){$('#fm').textContent='Isi nama / judul dulu.';return}
+      if(ty==='chk')o[k]=el.checked;else if(ty==='dt')o[k]=el.value?new Date(el.value).toISOString():null;else if(ty==='date')o[k]=el.value||null;else if(ty==='tags')o[k]=el.value.split(',').map(x=>x.trim()).filter(Boolean);else if(ty==='num')o[k]=el.value===''?null:+el.value;else if(ty==='cat')o[k]=el.value?+el.value:null;else if(ty==='img'||ty==='imgs')o[k]=st[k]||(ty==='imgs'?[]:null);else o[k]=el.value.trim()||null});
+    if(t!=='settings'&&t!=='proses'&&!(o.name||o.title)){$('#fm').textContent='Isi nama / judul dulu.';return}
     $('#sv').disabled=true;$('#sv').textContent='Menyimpan…';
-    const r=t==='settings'?await sb.from('settings').upsert({id:1,...o}):id?await sb.from(t).update(o).eq('id',id):await sb.from(t).insert(o);
+    const r=t==='settings'||t==='proses'?await sb.from('settings').upsert({id:1,...o}):id?await sb.from(t).update(o).eq('id',id):await sb.from(t).insert(o);
     if(r.error){$('#fm').textContent='Gagal: '+r.error.message;$('#sv').disabled=false;$('#sv').textContent='Simpan';return}
     $('#ov').classList.remove('on');show(t);
   };
@@ -375,6 +379,13 @@ async function msave(){
   const r=await sb.from('orders').insert({po,customer_name:n,customer_wa:w,items,total,paid:pay,pay_status:pay<=0?'pending':pay>=total?'lunas':'dp',payments}).select().single();
   if(r.error){$('#msv').disabled=false;return err('Gagal menyimpan: '+r.error.message)}
   await orders();inv(r.data.id);
+}
+/* ===== Teks Proses Pemesanan ===== */
+const PDEF={proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
+async function prosesTab(){
+  const r=(await sb.from('settings').select('*').eq('id',1).maybeSingle()).data||{};
+  const s=window._set={...PDEF,...Object.fromEntries(Object.entries(r).filter(([k,v])=>k in PDEF&&v!=null&&v!==''))};
+  $('#mn').innerHTML=`<div class="bar"><h2>Proses Pemesanan</h2><button class="btn" data-edit="1">${ic('edit')} Ubah teks</button></div><div class="row"><div><b>${esc(s.proses_title)}</b><small>${esc(s.proses_sub)}</small></div></div>`+[1,2,3,4].map(i=>`<div class="row"><div><b>${i}. ${esc(s['proses'+i+'_t'])}</b><small>${esc(s['proses'+i+'_d'])}</small></div></div>`).join('');
 }
 start();
 </script></body></html>
