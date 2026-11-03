@@ -220,7 +220,7 @@ function review(){
 let XR=[];
 function excel(){
   XR=[];
-  $('#mn').innerHTML=`<div class="bar"><h2>Impor dari Excel</h2></div><div class="rv" style="line-height:1.6"><b>Format file</b><br><small style="color:var(--mu)">Baris pertama berisi judul kolom: <b>nama</b>, <b>kategori</b>, <b>deskripsi</b>. Kolom <b>harga</b> boleh ditambahkan (opsional). Satu baris = satu produk. Kategori yang belum ada akan dibuat otomatis. Foto ditambahkan sesudahnya lewat tab Produk, tombol Edit.</small><div style="margin-top:10px"><button class="btn s" id="xt">${ic('sheet')} Unduh template Excel</button></div></div><label>Pilih file Excel (.xlsx, .xls, atau .csv)</label><input type="file" id="xf" accept=".xlsx,.xls,.csv"><div class="msg" id="dm"></div><div id="dr"></div>`;
+  $('#mn').innerHTML=`<div class="bar"><h2>Impor dari Excel</h2></div><div class="rv" style="line-height:1.6"><b>Format file</b><br><small style="color:var(--mu)">Baris pertama berisi judul kolom: <b>nama</b>, <b>kategori</b>, <b>deskripsi</b>. Kolom <b>harga</b> boleh ditambahkan (opsional). Satu baris = satu produk. Produk yang namanya sudah ada di katalog akan diperbarui harga dan deskripsinya, produk yang belum ada akan ditambahkan. Kategori yang belum ada akan dibuat otomatis. Foto ditambahkan sesudahnya lewat tab Produk, tombol Edit.</small><div style="margin-top:10px"><button class="btn s" id="xt">${ic('sheet')} Unduh template Excel</button></div></div><label>Pilih file Excel (.xlsx, .xls, atau .csv)</label><input type="file" id="xf" accept=".xlsx,.xls,.csv"><div class="msg" id="dm"></div><div id="dr"></div>`;
   $('#xt').onclick=()=>{const ws=XLSX.utils.aoa_to_sheet([['nama','kategori','deskripsi','harga'],['Fin Carbon Longfins','Diving','Fin freediving karbon, ringan dan responsif.',850000]]),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Produk');XLSX.writeFile(wb,'template-produk-vina-finds.xlsx')};
   $('#xf').onchange=async e=>{
     const f=e.target.files[0];if(!f)return;
@@ -229,31 +229,50 @@ function excel(){
       const col=(r,k)=>{const x=Object.keys(r).find(y=>y.trim().toLowerCase()===k);return x?r[x]:''};
       XR=rows.map(r=>{const pv=col(r,'harga');return{name:String(col(r,'nama')).trim(),cat:String(col(r,'kategori')).trim(),desc:String(col(r,'deskripsi')).trim(),price:typeof pv==='number'?pv:String(pv).replace(/[^\d]/g,'')}}).filter(r=>r.name);
       if(!XR.length){$('#dr').innerHTML='';return say('Tidak ada data terbaca. Pastikan baris pertama berisi judul kolom: nama, kategori, deskripsi.',1)}
-      const ex=new Set(((await sb.from('products').select('name')).data||[]).map(q=>nk(q.name))),seen=new Set();
-      XR.forEach(r=>{const k=nk(r.name);r.dup=ex.has(k)?'katalog':seen.has(k)?'file':'';seen.add(k)});
-      const nb=XR.filter(r=>!r.dup).length;
-      say(`${XR.length} baris terbaca: ${nb} produk baru, ${XR.length-nb} dilewati karena sudah ada.`);xreview();
+      const n0=XR.length,mp=new Map();XR.forEach(r=>mp.set(nk(r.name),r));XR=[...mp.values()];
+      await xclass();
+      const c=k=>XR.filter(r=>r.st===k).length;
+      say(`${n0} baris terbaca${n0>XR.length?` (${n0-XR.length} baris bernama sama digabung, yang terakhir dipakai)`:''}: ${c('baru')} baru, ${c('update')} diperbarui, ${c('sama')} tidak berubah.`);xreview();
     }catch(x){say('File tidak bisa dibaca: '+(x.message||x),1)}
   };
 }
 const nk=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
+async function xclass(){
+  const ex={};((await sb.from('products').select('id,name,price,description')).data||[]).forEach(p=>(ex[nk(p.name)]=ex[nk(p.name)]||[]).push(p));
+  XR.forEach(r=>{
+    const e=ex[nk(r.name)];r.ex=e||null;
+    if(!e){r.st='baru';return}
+    r.pc=r.price!==''&&e.some(p=>+p.price!==+r.price);
+    r.dc=!!r.desc&&e.some(p=>(p.description||'')!==r.desc);
+    r.st=r.pc||r.dc?'update':'sama';
+  });
+}
 function xreview(){
-  const known=n=>cats.some(c=>c.name.toLowerCase()===n.toLowerCase()),nb=XR.filter(r=>!r.dup).length;
-  $('#dr').innerHTML=`<h3>Pratinjau: ${nb} produk baru, ${XR.length-nb} dilewati</h3>`+XR.slice(0,60).map(r=>`<div class="row" style="${r.dup?'opacity:.5':''}"><div><b>${esc(r.name)}${r.dup?`<span class="pill o">${r.dup==='katalog'?'Sudah ada di katalog – dilewati':'Dobel di file – dilewati'}</span>`:(r.cat?`<span class="pill ${known(r.cat)?'':'o'}">${esc(r.cat)}${known(r.cat)?'':' (baru)'}</span>`:'')}</b><small>${esc(r.desc)||'Tanpa deskripsi'}${r.price!==''?' · '+rp(r.price):''}</small></div></div>`).join('')+(XR.length>60?`<div class="empty">…dan ${XR.length-60} baris lainnya</div>`:'')+`<button class="btn" id="xi" style="margin-top:8px" ${nb?'':'disabled'}>${ic('plus')} Impor ${nb} produk baru</button>`;
+  const c=k=>XR.filter(r=>r.st===k).length,known=n=>cats.some(x=>x.name.toLowerCase()===n.toLowerCase());
+  $('#dr').innerHTML=`<h3>Pratinjau: ${c('baru')} baru · ${c('update')} diperbarui · ${c('sama')} tidak berubah</h3>`+XR.slice(0,60).map(r=>{
+    const old=r.ex&&r.ex[0];
+    const pill=r.st==='baru'?`<span class="pill">Baru${r.cat?' · '+esc(r.cat)+(known(r.cat)?'':' (kategori baru)'):''}</span>`:r.st==='update'?'<span class="pill">Diperbarui</span>':'<span class="pill o">Tidak berubah</span>';
+    const info=r.st==='update'?[r.pc?`Harga ${rp(old.price)} → ${rp(r.price)}`:'',r.dc?'Deskripsi diperbarui':''].filter(Boolean).join(' · '):`${esc(r.desc)||'Tanpa deskripsi'}${r.price!==''?' · '+rp(r.price):''}`;
+    return `<div class="row" style="${r.st==='sama'?'opacity:.55':''}"><div><b>${esc(r.name)}${pill}</b><small>${info}</small></div></div>`}).join('')+(XR.length>60?`<div class="empty">…dan ${XR.length-60} baris lainnya</div>`:'')+`<button class="btn" id="xi" style="margin-top:8px" ${c('baru')+c('update')?'':'disabled'}>${ic('plus')} Impor: ${c('baru')} baru, ${c('update')} diperbarui</button>`;
   $('#xi').onclick=ximport;
 }
 async function ximport(){
   $('#xi').disabled=true;
   try{
-    const ex=new Set(((await sb.from('products').select('name')).data||[]).map(q=>nk(q.name)));
-    const NW=XR.filter(r=>!r.dup&&!ex.has(nk(r.name)));
-    if(!NW.length){say('Tidak ada produk baru untuk diimpor.');XR=[];$('#dr').innerHTML='';return}
-    let list=[...cats];
-    const need=[...new Set(NW.map(r=>r.cat).filter(c=>c&&!list.some(x=>x.name.toLowerCase()===c.toLowerCase())))];
-    if(need.length){const r=await sb.from('categories').insert(need.map((name,i)=>({name,sort:list.length+i}))).select();if(r.error)throw r.error;list=list.concat(r.data)}
-    const rows=NW.map(r=>({name:r.name,description:r.desc||null,price:r.price===''?0:+r.price,category_id:(list.find(x=>x.name.toLowerCase()===r.cat.toLowerCase())||{}).id||null,photos:[],in_stock:true,active:true}));
-    for(let i=0;i<rows.length;i+=100){const r=await sb.from('products').insert(rows.slice(i,i+100));if(r.error)throw r.error}
-    say(`Selesai! ${rows.length} produk baru ditambahkan, ${XR.length-rows.length} dilewati karena sudah ada. Tambahkan foto lewat tab Produk, tombol Edit.`);XR=[];$('#dr').innerHTML='';cats=(await sb.from('categories').select('*').order('sort')).data||[];
+    await xclass();
+    const NW=XR.filter(r=>r.st==='baru'),UP=XR.filter(r=>r.st==='update');
+    if(!NW.length&&!UP.length){say('Tidak ada perubahan untuk diimpor.');XR=[];$('#dr').innerHTML='';return}
+    let nUp=0;
+    for(const r of UP){const patch={};if(r.pc)patch.price=+r.price;if(r.dc)patch.description=r.desc;const q=await sb.from('products').update(patch).in('id',r.ex.map(p=>p.id));if(q.error)throw q.error;nUp++}
+    if(NW.length){
+      let list=[...cats];
+      const need=[...new Set(NW.map(r=>r.cat).filter(c=>c&&!list.some(x=>x.name.toLowerCase()===c.toLowerCase())))];
+      if(need.length){const r=await sb.from('categories').insert(need.map((name,i)=>({name,sort:list.length+i}))).select();if(r.error)throw r.error;list=list.concat(r.data)}
+      const rows=NW.map(r=>({name:r.name,description:r.desc||null,price:r.price===''?0:+r.price,category_id:(list.find(x=>x.name.toLowerCase()===r.cat.toLowerCase())||{}).id||null,photos:[],in_stock:true,active:true}));
+      for(let i=0;i<rows.length;i+=100){const r=await sb.from('products').insert(rows.slice(i,i+100));if(r.error)throw r.error}
+    }
+    say(`Selesai! ${NW.length} produk baru ditambahkan, ${nUp} produk diperbarui (harga/deskripsi), ${XR.length-NW.length-nUp} tidak berubah.`);
+    XR=[];$('#dr').innerHTML='';cats=(await sb.from('categories').select('*').order('sort')).data||[];
   }catch(e){say('Gagal: '+(e.message||e),1);$('#xi').disabled=false}
 }
 async function dedup(){
