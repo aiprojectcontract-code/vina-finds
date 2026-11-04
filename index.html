@@ -222,7 +222,7 @@ const eff=p=>p.promo_price&&+p.promo_price<+p.price?+p.promo_price:+p.price;
 const szs=p=>p.sizes||[];
 async function load(){
   const [s,c,p,b,t,r]=await Promise.all([sb.from('settings').select('*').eq('id',1).maybeSingle(),sb.from('categories').select('*').order('sort'),sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('banners').select('*').eq('active',true).order('sort'),sb.from('testimonials').select('*').eq('active',true).order('sort'),sb.from('rentals').select('*').eq('active',true).order('sort')]);
-  S={...S,...(s.data||{})};C=c.data||[];P=p.data||[];B=b.data||[];T=t.data||[];R=r.data||[];
+  S={...S,...(s.data||{})};C=c.data||[];P=(p.data||[]).filter(x=>(x.photos||[]).length>0);B=b.data||[];T=t.data||[];R=r.data||[];
 }
 function head(){
   if(S.logo)$('#hl').innerHTML=`<img src="${esc(S.logo)}" alt="Vina Finds">`;
@@ -257,7 +257,7 @@ function render(){
   const bs=P.filter(p=>p.best_seller||p.sold>0).sort((a,b)=>(b.sold||0)-(a.sold||0)).slice(0,10);
   $('#best').style.display=bs.length?'':'none';$('#bsl').innerHTML=bs.map(card).join('');
   $('#kategori').style.display=C.length?'':'none';
-  $('#csl').innerHTML=[{id:0,name:'Semua'},...C].map(c=>`<div class="cc ${c.id===cat?'on':''}" data-c="${c.id}"><i>${c.image?`<img src="${esc(c.image)}" alt="">`:ic('box')}</i><span>${esc(c.name)}</span></div>`).join('');
+  $('#csl').innerHTML=[{id:0,name:'Semua'},...C.filter(c=>P.some(p=>p.category_id===c.id))].map(c=>`<div class="cc ${c.id===cat?'on':''}" data-c="${c.id}"><i>${c.image?`<img src="${esc(c.image)}" alt="">`:ic('box')}</i><span>${esc(c.name)}</span></div>`).join('');
 }
 function extra(){
   $('#testi').style.display=T.length?'':'none';
