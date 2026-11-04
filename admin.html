@@ -114,11 +114,11 @@ async function _show(t,keep){
   if(t==='drive')return drive();
   if(t==='excel')return excel();
   if(t==='settings'){const r=(await sb.from('settings').select('*').eq('id',1).maybeSingle()).data||{};mn.innerHTML=`<div class="bar"><h2>Pengaturan Website</h2><button class="btn" data-edit="1">${ic('edit')} Ubah</button></div><div class="row"><div><b>WhatsApp: ${esc(r.wa)}</b><small>${esc(r.hero_title)} · ${esc(r.hero_sub)}<br>Close Pre Order: ${r.po_close?new Date(r.po_close).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'}):'belum diatur'} · Tiba di Indonesia: ${r.po_arrival||'belum diatur'}</small></div></div>`;window._set=r;return}
-  const c=F[t],rows=(await sb.from(t).select('*').order(c.order,{ascending:t==='products'?false:true})).data||[];window._rows=rows;
-  mn.innerHTML=`<div class="bar"><h2>${c.t} (${rows.length})</h2>${t==='products'?`<button class="btn s" id="dedup">${ic('trash')} Bersihkan dobel</button>`:''}<button class="btn" data-edit="">${ic('plus')} Tambah</button></div>`+(rows.map(r=>{
+  const c=F[t],rows=(await sb.from(t).select('*').order(c.order,{ascending:t==='products'?false:true})).data||[];if(t==='products')rows.sort((a,b)=>((a.photos||[]).length?0:1)-((b.photos||[]).length?0:1));window._rows=rows;
+  mn.innerHTML=`<div class="bar"><h2>${c.t} (${rows.length})${t==='products'?` <small style="color:var(--mu);font-weight:400;font-size:13px">· ${rows.filter(r=>!(r.photos||[]).length).length} belum ada foto</small>`:''}</h2>${t==='products'?`<button class="btn s" id="dedup">${ic('trash')} Bersihkan dobel</button>`:''}<button class="btn" data-edit="">${ic('plus')} Tambah</button></div>`+(rows.map(r=>{
     const th=(r.photos||[])[0]||r.image||r.photo,nm=r.name||r.title,cn=(cats.find(x=>x.id===r.category_id)||{}).name;
     const sub=t==='products'?rp(r.price)+(r.promo_price?` → promo ${rp(r.promo_price)}`:'')+(cn?` · ${esc(cn)}`:'')+(r.sizes&&r.sizes.length?` · Ukuran: ${esc(r.sizes.join(', '))}`:''):t==='rentals'?rp(r.price)+' '+esc(r.unit||''):esc(r.subtitle||r.review||'');
-    const pills=(r.in_stock===false?'<span class="pill o">Stok habis</span>':'')+(r.active===false?'<span class="pill o">Disembunyikan</span>':'');
+    const pills=(t==='products'&&!(r.photos||[]).length?'<span class="pill o">Belum ada foto, tidak tampil di website</span>':'')+(r.in_stock===false?'<span class="pill o">Stok habis</span>':'')+(r.active===false?'<span class="pill o">Disembunyikan</span>':'');
     return `<div class="row">${th?`<img src="${esc(th)}" alt="">`:`<span class="no">${ic(c.ic)}</span>`}<div><b>${esc(nm)}${pills}</b><small>${sub}</small></div><button class="btn s" data-edit="${r.id}">${ic('edit')}</button><button class="btn r" data-del="${r.id}">${ic('trash')}</button></div>`}).join('')||'<div class="empty">Belum ada data. Klik Tambah.</div>');
 }
 function form(id){
