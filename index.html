@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<const FALLBACK_WA="6285117629100";
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vina Finds | Dive Equipment</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -216,15 +215,21 @@ const ic=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
 const FALLBACK_WA=""; // isi nomor WhatsApp-mu (format 62812xxxx) agar tombol WhatsApp tetap tampil saat katalog tidak bisa dimuat
+let STATIC=false;
 let S={wa:'6281234567890'},C=[],P=[],B=[],T=[],R=[],cat=0,cart={},bi=0,sel={id:null,size:''},CK=[],CKC=false;
 try{cart=JSON.parse(localStorage.getItem('vf_cart2')||'{}')}catch(e){}
 const saveCart=()=>{try{localStorage.setItem('vf_cart2',JSON.stringify(cart))}catch(e){}};
 const WA=t=>'https://wa.me/'+S.wa+'?text='+encodeURIComponent(t);
 const eff=p=>p.promo_price&&+p.promo_price<+p.price?+p.promo_price:+p.price;
 const szs=p=>p.sizes||[];
-const thn=u=>String(u).replace('/object/public/foto/','/object/public/foto/t/');
+const thn=u=>String(u).replace('/object/public/foto/','/object/public/foto/t/').replace(/(googleusercontent\.com\/d\/[^=\s]+)=w\d+$/,'$1=w360');
 const timg=(u,alt)=>`<img loading="lazy" decoding="async" src="${esc(thn(u))}" onerror="this.onerror=null;this.src='${esc(u)}'" alt="${esc(alt)}">`;
 async function load(){
+  try{ // Mode sementara: jika ada file produk.json di folder yang sama, katalog dibaca dari file itu (tanpa Supabase)
+    const fr=await fetch('produk.json',{cache:'no-cache'});
+    if(fr.ok){const j=await fr.json();S={...S,...(j.S||{})};C=j.C||[];P=(j.P||[]).filter(x=>(x.photos||[]).length>0);B=j.B||[];T=j.T||[];R=j.R||[];STATIC=true;
+      if((!S.wa||S.wa==='6281234567890')&&FALLBACK_WA)S.wa=FALLBACK_WA;return}
+  }catch(e){}
   const [s,c,p,b,t,r]=await Promise.all([sb.from('settings').select('*').eq('id',1).maybeSingle(),sb.from('categories').select('*').order('sort'),sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('banners').select('*').eq('active',true).order('sort'),sb.from('testimonials').select('*').eq('active',true).order('sort'),sb.from('rentals').select('*').eq('active',true).order('sort')]);
   if(s.error&&p.error){
     try{const k=JSON.parse(localStorage.getItem('vf_cache')||'null');if(k){S={...S,...k.S};C=k.C;P=k.P;B=k.B;T=k.T;R=k.R;return}}catch(e){}
@@ -341,7 +346,7 @@ async function go(){
   $('#go').disabled=true;
   const items=CK.map(x=>({id:x.p.id,name:x.p.name,size:x.size||'',qty:x.qty,price:eff(x.p)})),total=items.reduce((a,x)=>a+x.price*x.qty,0);
   const po='PO'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
-  try{await sb.from('orders').insert({po,customer_name:n,customer_wa:w,items,total})}catch(e){}
+  if(!STATIC){try{await sb.from('orders').insert({po,customer_name:n,customer_wa:w,items,total})}catch(e){}}
   try{localStorage.setItem('vf_cust',JSON.stringify({n,w}))}catch(e){}
   if(CKC){cart={};saveCart()}
   const msg=`Halo Vina Finds, saya ingin memesan.\nNo. PO: ${po}\nNama: ${n}\nNo. WhatsApp: ${w}\n\n`+items.map(x=>`- ${x.name}${x.size?' ('+x.size+')':''} x${x.qty} = ${rp(x.price*x.qty)}`).join('\n')+`\n\nTotal: ${rp(total)}\nApakah masih tersedia?`;
