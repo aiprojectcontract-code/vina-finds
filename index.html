@@ -1,3 +1,4 @@
+const FALLBACK_WA="6285117629100"
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vina Finds | Dive Equipment</title>
@@ -229,7 +230,8 @@ async function load(){
     try{const k=JSON.parse(localStorage.getItem('vf_cache')||'null');if(k){S={...S,...k.S};C=k.C;P=k.P;B=k.B;T=k.T;R=k.R;return}}catch(e){}
     throw new Error('down');
   }
-  S={...S,...(s.data||{})};C=c.data||[];P=(p.data||[]).filter(x=>(x.photos||[]).length>0);B=b.data||[];T=t.data||[];R=r.data||[];
+  S={...S,...(s.data||{})};C=c.data||[];
+  if((!S.wa||S.wa==='6281234567890')&&FALLBACK_WA)S.wa=FALLBACK_WA;P=(p.data||[]).filter(x=>(x.photos||[]).length>0);B=b.data||[];T=t.data||[];R=r.data||[];
   try{localStorage.setItem('vf_cache',JSON.stringify({S,C,P,B,T,R}))}catch(e){}
 }
 function head(){
@@ -307,7 +309,7 @@ function proses(){
 }
 function down(){
   const w=S.wa&&S.wa!=='6281234567890'?S.wa:FALLBACK_WA;
-  if(w)$('#hwa').href='https://wa.me/'+w;
+  if(w){S.wa=w;try{head();extra();foot()}catch(e){}}
   $('#grid').innerHTML=`<div class="empty" style="grid-column:1/-1;line-height:1.7"><b style="color:var(--tx);font-size:17px">Katalog sedang dalam perawatan sementara</b><br>Mohon maaf atas ketidaknyamanannya. Kamu tetap bisa bertanya dan memesan langsung lewat WhatsApp.${w?`<br><a class="b b3" style="margin-top:14px" target="_blank" rel="noopener" href="https://wa.me/${w}">${ic('chat')} Chat WhatsApp</a>`:''}</div>`;
 }
 function count(){const n=Object.values(cart).reduce((a,b)=>a+b,0),c=$('#cc');c.textContent=n;c.style.display=n?'flex':'none'}
@@ -381,4 +383,3 @@ $('#q').addEventListener('input',()=>{if(/^#(rent|p-)/.test(location.hash))locat
 $('#so').addEventListener('change',render);
 count();proses();load().then(()=>{head();banners();po();proses();render();extra();foot();route()}).catch(down);
 </script></body></html>
-const FALLBACK_WA="6285117629100";
