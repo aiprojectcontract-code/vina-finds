@@ -1,4 +1,3 @@
-const FALLBACK_WA="6285117629100";
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Vina Finds | Dive Equipment</title>
@@ -215,15 +214,23 @@ const $=s=>document.querySelector(s);
 const ic=n=>`<svg class="i"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
+const FALLBACK_WA=""; // isi nomor WhatsApp-mu (format 62812xxxx) agar tombol WhatsApp tetap tampil saat katalog tidak bisa dimuat
 let S={wa:'6281234567890'},C=[],P=[],B=[],T=[],R=[],cat=0,cart={},bi=0,sel={id:null,size:''},CK=[],CKC=false;
 try{cart=JSON.parse(localStorage.getItem('vf_cart2')||'{}')}catch(e){}
 const saveCart=()=>{try{localStorage.setItem('vf_cart2',JSON.stringify(cart))}catch(e){}};
 const WA=t=>'https://wa.me/'+S.wa+'?text='+encodeURIComponent(t);
 const eff=p=>p.promo_price&&+p.promo_price<+p.price?+p.promo_price:+p.price;
 const szs=p=>p.sizes||[];
+const thn=u=>String(u).replace('/object/public/foto/','/object/public/foto/t/');
+const timg=(u,alt)=>`<img loading="lazy" decoding="async" src="${esc(thn(u))}" onerror="this.onerror=null;this.src='${esc(u)}'" alt="${esc(alt)}">`;
 async function load(){
   const [s,c,p,b,t,r]=await Promise.all([sb.from('settings').select('*').eq('id',1).maybeSingle(),sb.from('categories').select('*').order('sort'),sb.from('products').select('*').eq('active',true).order('created_at',{ascending:false}),sb.from('banners').select('*').eq('active',true).order('sort'),sb.from('testimonials').select('*').eq('active',true).order('sort'),sb.from('rentals').select('*').eq('active',true).order('sort')]);
+  if(s.error&&p.error){
+    try{const k=JSON.parse(localStorage.getItem('vf_cache')||'null');if(k){S={...S,...k.S};C=k.C;P=k.P;B=k.B;T=k.T;R=k.R;return}}catch(e){}
+    throw new Error('down');
+  }
   S={...S,...(s.data||{})};C=c.data||[];P=(p.data||[]).filter(x=>(x.photos||[]).length>0);B=b.data||[];T=t.data||[];R=r.data||[];
+  try{localStorage.setItem('vf_cache',JSON.stringify({S,C,P,B,T,R}))}catch(e){}
 }
 function head(){
   if(S.logo)$('#hl').innerHTML=`<img src="${esc(S.logo)}" alt="Vina Finds">`;
@@ -239,7 +246,7 @@ function banners(){
 const price=p=>`<div class="pr">${rp(eff(p))}${eff(p)<+p.price?`<s>${rp(p.price)}</s>`:''}</div>`;
 function card(p){
   const cn=(C.find(c=>c.id===p.category_id)||{}).name||'',ph=p.photos||[];
-  return `<div class="card"><div class="ph" data-o="${p.id}">${ph[0]?`<img loading="lazy" src="${esc(ph[0])}" alt="${esc(p.name)}">`:ic('img')}${!p.in_stock?'<span class="bd o">Stok habis</span>':eff(p)<+p.price?'<span class="bd">Promo</span>':''}</div><div class="ci"><span class="ck">${esc(cn)}</span><h3 data-o="${p.id}" style="cursor:pointer">${esc(p.name)}</h3>${price(p)}<p>${esc(p.description)}</p><div class="ac ${p.in_stock?'':'dis'}"><button class="ad" data-add="${p.id}">${ic('cart')} ${szs(p).length?'Pilih ukuran':'Keranjang'}</button></div></div></div>`;
+  return `<div class="card"><div class="ph" data-o="${p.id}">${ph[0]?timg(ph[0],p.name):ic('img')}${!p.in_stock?'<span class="bd o">Stok habis</span>':eff(p)<+p.price?'<span class="bd">Promo</span>':''}</div><div class="ci"><span class="ck">${esc(cn)}</span><h3 data-o="${p.id}" style="cursor:pointer">${esc(p.name)}</h3>${price(p)}<p>${esc(p.description)}</p><div class="ac ${p.in_stock?'':'dis'}"><button class="ad" data-add="${p.id}">${ic('cart')} ${szs(p).length?'Pilih ukuran':'Keranjang'}</button></div></div></div>`;
 }
 function plist(){
   const q=$('#q').value.toLowerCase(),s=$('#so').value;
@@ -298,13 +305,18 @@ function proses(){
   $('#pst').textContent=g('proses_title');$('#pss').textContent=g('proses_sub');
   $('#psg').innerHTML=['search','chat','wallet','truck'].map((n,i)=>`<div class="sp"><em>0${i+1}</em><span>${ic(n)}</span><h3>${esc(g('proses'+(i+1)+'_t'))}</h3><p>${esc(g('proses'+(i+1)+'_d'))}</p></div>`).join('');
 }
+function down(){
+  const w=S.wa&&S.wa!=='6281234567890'?S.wa:FALLBACK_WA;
+  if(w)$('#hwa').href='https://wa.me/'+w;
+  $('#grid').innerHTML=`<div class="empty" style="grid-column:1/-1;line-height:1.7"><b style="color:var(--tx);font-size:17px">Katalog sedang dalam perawatan sementara</b><br>Mohon maaf atas ketidaknyamanannya. Kamu tetap bisa bertanya dan memesan langsung lewat WhatsApp.${w?`<br><a class="b b3" style="margin-top:14px" target="_blank" rel="noopener" href="https://wa.me/${w}">${ic('chat')} Chat WhatsApp</a>`:''}</div>`;
+}
 function count(){const n=Object.values(cart).reduce((a,b)=>a+b,0),c=$('#cc');c.textContent=n;c.style.display=n?'flex':'none'}
 function open(h){$('#sh').innerHTML=`<button class="x" data-x>${ic('x')}</button>`+h;$('#ov').classList.add('on')}
 const close=()=>$('#ov').classList.remove('on');
 function addCart(id,size,q=1){const k=id+'|'+size;cart[k]=(cart[k]||0)+q;saveCart();count()}
 function detail(id,hint){
   const p=P.find(x=>x.id==id);if(!p)return;const ph=(p.photos||[]).slice(0,5);sel={id:p.id,size:''};
-  open(`<div class="main" id="mm">${ph[0]?`<img src="${esc(ph[0])}" alt="">`:ic('img')}</div>${ph.length>1?`<div class="th">${ph.map((f,i)=>`<img data-t="${esc(f)}" class="${i?'':'on'}" src="${esc(f)}" alt="">`).join('')}</div>`:''}<h2>${esc(p.name)}</h2><div style="font-size:19px">${price(p)}</div><p class="d">${esc(p.description)}</p>${szs(p).length?`<b>Pilih ukuran <span style="color:#d94646">*</span></b><div class="szs">${szs(p).map(s=>`<button class="sz" data-sz="${esc(s)}">${esc(s)}</button>`).join('')}</div>`:''}<div class="er" id="er">${hint&&szs(p).length?'Pilih ukuran dulu sebelum menambahkan ke keranjang.':''}</div><div class="ac ${p.in_stock?'':'dis'}"><button class="ad" style="padding:14px" data-dadd>${ic('cart')} Keranjang</button><button class="wa" style="padding:14px" data-buy>${ic('chat')} Beli Sekarang</button></div>`);
+  open(`<div class="main" id="mm">${ph[0]?`<img src="${esc(ph[0])}" alt="">`:ic('img')}</div>${ph.length>1?`<div class="th">${ph.map((f,i)=>`<img data-t="${esc(f)}" class="${i?'':'on'}" src="${esc(thn(f))}" onerror="this.onerror=null;this.src='${esc(f)}'" alt="">`).join('')}</div>`:''}<h2>${esc(p.name)}</h2><div style="font-size:19px">${price(p)}</div><p class="d">${esc(p.description)}</p>${szs(p).length?`<b>Pilih ukuran <span style="color:#d94646">*</span></b><div class="szs">${szs(p).map(s=>`<button class="sz" data-sz="${esc(s)}">${esc(s)}</button>`).join('')}</div>`:''}<div class="er" id="er">${hint&&szs(p).length?'Pilih ukuran dulu sebelum menambahkan ke keranjang.':''}</div><div class="ac ${p.in_stock?'':'dis'}"><button class="ad" style="padding:14px" data-dadd>${ic('cart')} Keranjang</button><button class="wa" style="padding:14px" data-buy>${ic('chat')} Beli Sekarang</button></div>`);
 }
 function needSize(p){$('#er').style.color='';if(szs(p).length&&!sel.size){$('#er').textContent='Ukuran wajib dipilih.';return true}return false}
 function showCart(){
@@ -356,7 +368,7 @@ function prodPage(id){
   if(!p){el.innerHTML='<div class="w"><div class="empty">Produk tidak ditemukan. <a href="#produk" style="color:var(--pr)">Kembali ke produk</a></div></div>';return}
   const ph=(p.photos||[]).slice(0,5),cn=C.find(c=>c.id===p.category_id);sel={id:p.id,size:'',qty:1};
   document.title=p.name+' | Vina Finds';
-  el.innerHTML=`<div class="w"><div class="bc"><a href="#home">Home</a>/${cn?`<a href="#produk" data-c="${cn.id}">${esc(cn.name)}</a>/`:''}<b>${esc(p.name)}</b></div><div class="pd">${ph.length>1?`<div class="pt">${ph.map((f,i)=>`<img data-t="${esc(f)}" class="${i?'':'on'}" src="${esc(f)}" alt="">`).join('')}</div>`:'<div></div>'}<div class="pm" id="mm">${ph[0]?`<img src="${esc(ph[0])}" alt="${esc(p.name)}">`:ic('img')}</div><div class="pi">${cn?`<small class="k">${esc(cn.name)}</small>`:''}<h1>${esc(p.name)}</h1><div class="pp">${rp(eff(p))}${eff(p)<+p.price?`<s>${rp(p.price)}</s>`:''}</div>${szs(p).length?`<b>Ukuran: <span id="szl" style="color:var(--mu);font-weight:400">pilih ukuran</span> <span style="color:#d94646">*</span></b><div class="szs">${szs(p).map(x=>`<button class="sz" data-sz="${esc(x)}">${esc(x)}</button>`).join('')}</div>`:''}<div class="pq ${p.in_stock?'':'dis'}"><div class="qs"><button data-qm>${ic('minus')}</button><span id="qv">1</span><button data-qp>${ic('plus')}</button></div><button class="pb" data-dadd>${ic('cart')} Masukkan ke Keranjang</button></div><div class="er" id="er">${p.in_stock?'':'Stok sedang habis.'}</div><button class="pby ${p.in_stock?'':'dis'}" data-buy>${ic('chat')} Beli Sekarang</button>${p.description?`<div class="dh"><h3>Deskripsi</h3><p class="d">${esc(p.description)}</p></div>`:''}</div></div></div>`;
+  el.innerHTML=`<div class="w"><div class="bc"><a href="#home">Home</a>/${cn?`<a href="#produk" data-c="${cn.id}">${esc(cn.name)}</a>/`:''}<b>${esc(p.name)}</b></div><div class="pd">${ph.length>1?`<div class="pt">${ph.map((f,i)=>`<img data-t="${esc(f)}" class="${i?'':'on'}" src="${esc(thn(f))}" onerror="this.onerror=null;this.src='${esc(f)}'" alt="">`).join('')}</div>`:'<div></div>'}<div class="pm" id="mm">${ph[0]?`<img src="${esc(ph[0])}" alt="${esc(p.name)}">`:ic('img')}</div><div class="pi">${cn?`<small class="k">${esc(cn.name)}</small>`:''}<h1>${esc(p.name)}</h1><div class="pp">${rp(eff(p))}${eff(p)<+p.price?`<s>${rp(p.price)}</s>`:''}</div>${szs(p).length?`<b>Ukuran: <span id="szl" style="color:var(--mu);font-weight:400">pilih ukuran</span> <span style="color:#d94646">*</span></b><div class="szs">${szs(p).map(x=>`<button class="sz" data-sz="${esc(x)}">${esc(x)}</button>`).join('')}</div>`:''}<div class="pq ${p.in_stock?'':'dis'}"><div class="qs"><button data-qm>${ic('minus')}</button><span id="qv">1</span><button data-qp>${ic('plus')}</button></div><button class="pb" data-dadd>${ic('cart')} Masukkan ke Keranjang</button></div><div class="er" id="er">${p.in_stock?'':'Stok sedang habis.'}</div><button class="pby ${p.in_stock?'':'dis'}" data-buy>${ic('chat')} Beli Sekarang</button>${p.description?`<div class="dh"><h3>Deskripsi</h3><p class="d">${esc(p.description)}</p></div>`:''}</div></div></div>`;
 }
 function route(){
   const h=location.hash.slice(1),r=h==='rent',pp=h.startsWith('p-');
@@ -367,5 +379,5 @@ function route(){
 addEventListener('hashchange',route);
 $('#q').addEventListener('input',()=>{if(/^#(rent|p-)/.test(location.hash))location.hash='#produk';render();if($('#q').value)$('#produk').scrollIntoView()});
 $('#so').addEventListener('change',render);
-count();proses();load().then(()=>{head();banners();po();proses();render();extra();foot();route()}).catch(()=>{$('#grid').innerHTML='<div class="empty">Produk belum dapat dimuat.</div>'});
+count();proses();load().then(()=>{head();banners();po();proses();render();extra();foot();route()}).catch(down);
 </script></body></html>
