@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Vina Finds Admin</title><link rel="icon" href="/favicon.png">
+<style>
+:root{--pr:#2f8fe8;--pd:#1b6fc4;--bg:#f4f9ff;--ac:#e3f1ff;--bd:#d6e8fb;--tx:#10294a;--mu:#5f7694;--rd:#d94646}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:80px}
+button{font:inherit;cursor:pointer}a{color:var(--pd)}
+header{background:#fff;border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5}
+.hd{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.hd b{font-size:18px;margin-right:auto}
+.tab{border:1px solid var(--bd);background:#fff;color:var(--tx);border-radius:99px;padding:8px 16px;font-weight:600}.tab.on{background:var(--pr);border-color:var(--pr);color:#fff}
+main{max-width:980px;margin:0 auto;padding:18px 16px}
+.btn{border:0;border-radius:10px;padding:10px 16px;background:var(--pr);color:#fff;font-weight:700;display:inline-flex;gap:6px;align-items:center}.btn.s{background:var(--ac);color:var(--pd)}.btn.r{background:#fde8e8;color:var(--rd)}.btn:disabled{opacity:.5}
+.card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}.card h3{margin:0 0 6px}
+label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px}
+input[type=text],input[type=password],input[type=number],input[type=datetime-local],input[type=date],textarea,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
+.row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.row img,.row .no{width:54px;height:54px;border-radius:10px;object-fit:cover;background:var(--ac);flex:none;display:flex;align-items:center;justify-content:center;color:var(--pr)}
+.row div{flex:1;min-width:0}.row b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.row small{color:var(--mu)}
+.pill{font-size:11px;background:var(--ac);color:var(--pd);border-radius:99px;padding:2px 8px;margin-left:6px}
+.im{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.pv{width:110px;height:78px;border-radius:12px;background:var(--ac);display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:12px;text-align:center;overflow:hidden}.pv img{width:100%;height:100%;object-fit:cover}
+.ia{flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px}.ia .btn{align-self:flex-start;cursor:pointer}
+.ov{position:fixed;inset:0;background:#0b2a5280;z-index:20;display:none;align-items:center;justify-content:center;padding:12px}.ov.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:20px;padding:20px}
+.ph{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.ph>div{width:104px;text-align:center}.ph img{width:104px;height:104px;object-fit:cover;border-radius:12px;border:3px solid transparent}.ph .c img{border-color:var(--pr)}
+.ph .a{display:flex;gap:4px;justify-content:center;margin-top:4px}.ph .a button{border:1px solid var(--bd);background:#fff;border-radius:8px;padding:4px 8px}
+#bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--bd);padding:12px 16px;display:none;align-items:center;gap:12px;z-index:10;justify-content:center}
+.msg{color:var(--rd);font-size:13px;margin-top:8px;white-space:pre-wrap}.mu{color:var(--mu);font-size:13px;line-height:1.6}
+.login{max-width:520px;margin:6vh auto;background:#fff;border:1px solid var(--bd);border-radius:20px;padding:26px}
+.tb{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.tb input,.tb select{flex:1;min-width:160px}
+</style></head><body><div id="app"></div><div class="ov" id="ov"><div class="sheet" id="sh"></div></div>
+<div id="bar"><span>Ada perubahan yang belum dipublikasikan.</span><button class="btn" id="pub">Publikasikan</button></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nk=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
+const rp=n=>n>0?'Rp'+Number(n).toLocaleString('id-ID'):'Tanya harga';
+let CFG=JSON.parse(localStorage.getItem('vf_gh')||'null'),PJ=null,TK=null,SHA=null,dirty=false,tab='set',PREV={},PQ={q:'',cat:0,page:0};
+const PD={proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
+const GRP=[
+ ['Pre Order & Hitung Mundur',[['po_label','Nama batch (contoh: Batch 13)','text'],['po_close','Tanggal & jam Pre Order ditutup (kosongkan untuk menyembunyikan hitung mundur)','dt'],['po_arrival','Estimasi tiba di Indonesia','date']]],
+ ['Tautan & Kontak',[['wa','Nomor WhatsApp (format 62812xxxx, tanpa + atau spasi)','text'],['wa_group','Link grup WhatsApp (https://chat.whatsapp.com/...)','text'],['instagram','Instagram (username atau link)','text'],['tiktok','TikTok (username atau link)','text'],['facebook','Facebook (opsional)','text'],['email','Email toko','text'],['address','Alamat toko','area']]],
+ ['Tampilan Landing Page',[['logo','Logo bulat (opsional)','img'],['hero_image','Gambar utama landing page (PNG transparan paling bagus)','img'],['hero_badge','Teks badge','text'],['hero_title','Judul besar','text'],['hero_sub','Sub judul','text'],['hero_desc','Deskripsi','area']]],
+ ['Proses Pemesanan',[['proses_title','Judul bagian','text'],['proses_sub','Kalimat pengantar','area'],...[1,2,3,4].flatMap(i=>[['proses'+i+'_t','Langkah '+i+': judul','text'],['proses'+i+'_d','Langkah '+i+': penjelasan','area']])]]
+];
+/* ---------- GitHub ---------- */
+const H=raw=>({Authorization:'Bearer '+CFG.token,Accept:raw?'application/vnd.github.raw+json':'application/vnd.github+json'});
+const API=p=>`https://api.github.com/repos/${CFG.repo}/contents/${p}`;
+async function rd(p,raw){const r=await fetch(API(p)+'?ref='+CFG.branch,{headers:H(raw),cache:'no-store'});if(r.status===404)return null;if(!r.ok)throw new Error('GitHub menolak permintaan (kode '+r.status+'). Periksa token dan nama repository.');return r}
+const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const enc=t=>{const u=new TextEncoder().encode(t);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)};
+const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(b)});
+async function put(p,content,msg,sha){const body={message:msg,content,branch:CFG.branch};if(sha)body.sha=sha;return fetch(API(p),{method:'PUT',headers:{...H(),'Content-Type':'application/json'},body:JSON.stringify(body)})}
+async function loadAll(){
+  const t=await rd('toko.json');
+  if(t){const j=await t.json();SHA=j.sha;TK=JSON.parse(dec(j.content))}else{SHA=null;TK={}}
+  TK.S=TK.S||{};TK.catCovers=TK.catCovers||{};TK.P=TK.P||{};
+  const p=await rd('produk.json',true);if(!p)throw new Error('File produk.json belum ada di repository. Buat dulu dengan alat konversi katalog.');
+  PJ=await p.json();PJ.C=PJ.C||[];PJ.P=PJ.P||[];PJ.S=PJ.S||{};PJ.B=PJ.B||[];
+}
+async function publish(){
+  const b=$('#pub');b.disabled=true;b.textContent='Menyimpan…';
+  try{
+    const body=enc(JSON.stringify(TK,null,1));
+    let r=await put('toko.json',body,'Update toko dari admin',SHA);
+    if(r.status===409||r.status===422){const c=await rd('toko.json');SHA=c?(await c.json()).sha:null;r=await put('toko.json',body,'Update toko dari admin',SHA)}
+    if(!r.ok)throw new Error('Gagal menyimpan (kode '+r.status+')');
+    SHA=(await r.json()).content.sha;dirty=false;bar();
+    alert('Berhasil dipublikasikan. Website customer akan diperbarui dalam sekitar 1 menit.');
+  }catch(e){alert(e.message||e)}
+  b.disabled=false;b.textContent='Publikasikan';
+}
+$('#pub').onclick=publish;
+const bar=()=>{$('#bar').style.display=dirty?'flex':'none'};
+const mark=()=>{dirty=true;bar()};
+addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+/* ---------- Gambar ---------- */
+function shrink(file,m=1200,q=.82){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));const x=c.getContext('2d'),png=file.type==='image/png';if(!png){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>b?res([b,b.type==='image/png'?'png':b.type==='image/webp'?'webp':'jpg']):rej(),png?'image/webp':'image/jpeg',q)};im.onerror=rej;im.src=u})}
+async function upImg(file){
+  const [b,ext]=await shrink(file),name='img/'+Date.now()+'-'+Math.random().toString(36).slice(2,6)+'.'+ext;
+  const r=await put(name,await b64(b),'Upload gambar dari admin');if(!r.ok)throw new Error('Upload gagal (kode '+r.status+')');
+  PREV['/'+name]=URL.createObjectURL(b);return '/'+name;
+}
+const normLink=v=>{v=v.trim();if(!v)return'';const m=v.match(/\/d\/([\w-]+)/)||v.match(/[?&]id=([\w-]+)/);return m&&/drive\.google|googleusercontent/.test(v)?`https://lh3.googleusercontent.com/d/${m[1]}=w1200`:v};
+const iw=(path,url)=>`<div class="im" data-path="${esc(path)}"><div class="pv">${url?`<img src="${esc(PREV[url]||url)}" alt="">`:'Belum ada gambar'}</div><div class="ia"><label class="btn s">Upload gambar<input type="file" accept="image/*" hidden></label><input type="text" class="lk" placeholder="atau tempel link Google Drive / alamat gambar"><button class="btn r" data-clr style="align-self:flex-start">Hapus</button></div></div>`;
+function setPath(path,val){
+  const i=path.indexOf(':'),t=path.slice(0,i),k=path.slice(i+1);
+  if(t==='S')TK.S[k]=val;
+  else if(t==='B'){const b=TK.B.find(x=>String(x.id)===k);if(b)b.image=val}
+  else if(t==='C'){if(val)TK.catCovers[k]=val;else delete TK.catCovers[k]}
+  mark();
+}
+const prev=(box,val)=>{box.querySelector('.pv').innerHTML=val?`<img src="${esc(PREV[val]||val)}" alt="">`:'Belum ada gambar'};
+document.addEventListener('change',async e=>{
+  const box=e.target.closest('.im');if(!box)return;const path=box.dataset.path;
+  if(e.target.type==='file'&&e.target.files[0]){
+    box.querySelector('.pv').textContent='Mengupload…';
+    try{const u=await upImg(e.target.files[0]);setPath(path,u);prev(box,u)}catch(x){box.querySelector('.pv').textContent='Gagal';alert(x.message||x)}
+    e.target.value='';
+  }else if(e.target.classList.contains('lk')){const u=normLink(e.target.value);setPath(path,u);prev(box,u)}
+});
+/* ---------- Foto produk ---------- */
+const idOf=u=>(String(u).match(/\/d\/([^=\/?]+)/)||[])[1]||u;
+const thumb=u=>String(u).replace(/=w\d+$/,'=w200');
+function ordered(ph,order){if(!order||!order.length)return ph;const m=new Map(ph.map(u=>[idOf(u),u])),first=order.map(i=>m.get(i)).filter(Boolean);return[...first,...ph.filter(u=>!first.includes(u))]}
+const cname=p=>(PJ.C.find(c=>c.id===p.category_id)||{}).name||'';
+const pkey=p=>nk(cname(p))+'::'+nk(p.name);
+/* ---------- Tampilan ---------- */
+function setup(msg){
+  $('#app').innerHTML=`<div class="login"><h2 style="margin-top:0">Admin Vina Finds</h2><p class="mu">Admin ini menyimpan pengaturan langsung ke GitHub-mu, tanpa Supabase. Masukkan token sekali saja. Token disimpan hanya di browser ini.</p>
+  <label>Repository (pemilik/nama)</label><input type="text" id="rp" value="${esc(CFG?CFG.repo:'aiprojectcontract-code/vina-finds')}">
+  <label>Branch</label><input type="text" id="br" value="${esc(CFG?CFG.branch:'main')}">
+  <label>GitHub token</label><input type="password" id="tk" placeholder="github_pat_...">
+  <p class="mu">Cara membuat token: GitHub → foto profil → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Pilih "Only select repositories" lalu repository ini, dan pada Permissions → Repository permissions atur <b>Contents</b> menjadi <b>Read and write</b>.</p>
+  <div class="msg" id="lm">${esc(msg||'')}</div><button class="btn" id="go" style="margin-top:12px;width:100%;justify-content:center">Masuk</button></div>`;
+  $('#go').onclick=async()=>{
+    CFG={repo:$('#rp').value.trim(),branch:$('#br').value.trim()||'main',token:$('#tk').value.trim()};
+    if(!CFG.token||!CFG.repo.includes('/')){$('#lm').textContent='Isi repository dan token.';return}
+    $('#go').disabled=true;$('#go').textContent='Memeriksa…';
+    try{await loadAll();localStorage.setItem('vf_gh',JSON.stringify(CFG));shell()}catch(e){$('#lm').textContent=e.message||String(e);$('#go').disabled=false;$('#go').textContent='Masuk'}
+  };
+}
+function shell(){
+  $('#app').innerHTML=`<header><div class="hd"><b>Vina Finds Admin</b>${[['set','Pengaturan'],['ban','Banner & Promo'],['cat','Kategori'],['prod','Produk']].map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join('')}<button class="btn s" id="out">Keluar</button></div></header><main id="mn"></main>`;
+  show();
+}
+function show(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({set:setTab,ban:banTab,cat:catTab,prod:prodTab})[tab]();window.scrollTo(0,0)}
+const sv=k=>TK.S[k]!==undefined?TK.S[k]:((PJ.S||{})[k]||PD[k]||'');
+function setTab(){
+  $('#mn').innerHTML=GRP.map(([t,fs])=>`<div class="card"><h3>${t}</h3>${fs.map(([k,l,ty])=>{
+    const v=sv(k);let h=`<label>${l}</label>`;
+    if(ty==='img')return h+iw('S:'+k,v);
+    if(ty==='area')return h+`<textarea rows="3" data-s="${k}">${esc(v)}</textarea>`;
+    if(ty==='dt'){const d=v?new Date(v):null,z=d&&!isNaN(d)?new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,16):'';return h+`<input type="datetime-local" data-s="${k}" data-dt="1" value="${z}">`}
+    if(ty==='date')return h+`<input type="date" data-s="${k}" value="${esc(v)}">`;
+    return h+`<input type="text" data-s="${k}" value="${esc(v)}">`}).join('')}</div>`).join('');
+}
+document.addEventListener('input',e=>{const k=e.target.dataset.s;if(!k)return;TK.S[k]=e.target.dataset.dt?(e.target.value?new Date(e.target.value).toISOString():''):e.target.value;mark()});
+function banTab(){
+  if(!TK.B)TK.B=JSON.parse(JSON.stringify(PJ.B||[]));
+  $('#mn').innerHTML=`<div class="card"><h3>Banner & Promo</h3><p class="mu">Banner tampil bergantian di halaman utama. Gambar yang disarankan berukuran lebar 1200 x 400 px.</p><button class="btn" id="addb">+ Tambah banner</button></div>`+TK.B.map(b=>`<div class="card" data-bid="${b.id}"><label>Judul promo</label><input type="text" data-bf="title" value="${esc(b.title)}"><label>Teks tambahan</label><input type="text" data-bf="subtitle" value="${esc(b.subtitle)}"><label>Gambar banner</label>${iw('B:'+b.id,b.image)}<label>Urutan tampil (angka kecil tampil duluan)</label><input type="number" data-bf="sort" value="${b.sort??0}"><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" data-bf="active" ${b.active!==false?'checked':''}> Tampilkan di website</label><button class="btn r" data-delb="${b.id}" style="margin-top:12px">Hapus banner</button></div>`).join('');
+}
+document.addEventListener('input',e=>{const f=e.target.dataset.bf;if(!f)return;const b=TK.B.find(x=>String(x.id)===e.target.closest('[data-bid]').dataset.bid);if(!b)return;b[f]=e.target.type==='checkbox'?e.target.checked:e.target.type==='number'?+e.target.value||0:e.target.value;mark()});
+function catTab(){
+  const cnt={};PJ.P.forEach(p=>cnt[p.category_id]=(cnt[p.category_id]||0)+1);
+  $('#mn').innerHTML=`<div class="card"><h3>Sampul Kategori</h3><p class="mu">Gambar sampul tampil di barisan "Shop by Category" di website. Nama kategori mengikuti nama folder di Google Drive.</p></div>`+PJ.C.map(c=>`<div class="card"><b>${esc(c.name)}</b> <span class="pill">${cnt[c.id]||0} produk</span><div style="margin-top:10px">${iw('C:'+nk(c.name),TK.catCovers[nk(c.name)]||c.image||'')}</div></div>`).join('');
+}
+function prodTab(){
+  $('#mn').innerHTML=`<div class="card"><h3>Produk (${PJ.P.length})</h3><p class="mu">Klik produk untuk menambah deskripsi dan mengatur foto sampul. Produk dan harganya berasal dari Google Drive.</p><div class="tb"><input type="text" id="pq" placeholder="Cari produk…" value="${esc(PQ.q)}"><select id="pc"><option value="0">Semua kategori</option>${PJ.C.map(c=>`<option value="${c.id}" ${PQ.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div></div><div id="pl"></div>`;
+  plist();
+}
+function plist(){
+  const l=PJ.P.map((p,i)=>({p,i})).filter(({p})=>(!PQ.cat||p.category_id===PQ.cat)&&nk(p.name).includes(nk(PQ.q))),N=30,pg=Math.min(PQ.page,Math.max(0,Math.ceil(l.length/N)-1));PQ.page=pg;
+  $('#pl').innerHTML=l.slice(pg*N,pg*N+N).map(({p,i})=>{const ov=TK.P[pkey(p)]||{},ph=ordered(p.photos||[],ov.order),d=('description' in ov?ov.description:p.description);
+    return `<div class="row" data-pe="${i}">${ph[0]?`<img loading="lazy" src="${esc(thumb(ph[0]))}" alt="">`:'<span class="no">–</span>'}<div><b>${esc(p.name)}</b><small>${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)} · ${(p.photos||[]).length} foto</small></div>${d?'<span class="pill">Ada deskripsi</span>':''}${ov.order?'<span class="pill">Sampul diubah</span>':''}</div>`}).join('')||'<div class="mu" style="text-align:center;padding:30px">Tidak ada produk.</div>'
+  +(l.length>N?`<div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px"><button class="btn s" data-pg="-1" ${pg?'':'disabled'}>‹ Sebelumnya</button><span class="mu">Halaman ${pg+1} dari ${Math.ceil(l.length/N)}</span><button class="btn s" data-pg="1" ${(pg+1)*N<l.length?'':'disabled'}>Berikutnya ›</button></div>`:'');
+}
+let EP=null;
+function editP(i){
+  const p=PJ.P[i],key=pkey(p),ov=TK.P[key]||{};
+  EP={p,key,order:ordered(p.photos||[],ov.order).map(idOf),map:new Map((p.photos||[]).map(u=>[idOf(u),u])),desc:'description' in ov?ov.description:(p.description||'')};
+  $('#sh').innerHTML=`<h2 style="margin-top:0">${esc(p.name)}</h2><div class="mu">${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)}</div><label>Foto produk (foto pertama menjadi sampul)</label><div class="ph" id="eph"></div><label>Deskripsi produk</label><textarea id="ed" rows="6" placeholder="Tulis deskripsi produk…">${esc(EP.desc)}</textarea><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="esv">Simpan</button><button class="btn r" id="ers">Kembalikan ke awal</button><button class="btn s" id="ecl">Tutup</button></div>`;
+  ephoto();$('#ov').classList.add('on');
+}
+function ephoto(){$('#eph').innerHTML=EP.order.map((id,k)=>`<div class="${k?'':'c'}"><img src="${esc(thumb(EP.map.get(id)))}" alt=""><div class="a"><button data-mv="${k}:-1" ${k?'':'disabled'}>◀</button><button data-mv="${k}:0" ${k?'':'disabled'} title="Jadikan sampul">★</button><button data-mv="${k}:1" ${k<EP.order.length-1?'':'disabled'}>▶</button></div></div>`).join('')||'<span class="mu">Produk ini belum punya foto.</span>'}
+document.addEventListener('click',e=>{
+  const t=e.target,g=a=>t.closest('['+a+']');
+  if(g('data-t')){tab=g('data-t').dataset.t;show();return}
+  if(t.id==='out'){if(!dirty||confirm('Ada perubahan yang belum dipublikasikan. Tetap keluar?')){localStorage.removeItem('vf_gh');CFG=null;dirty=false;bar();setup()}return}
+  if(g('data-pe')){editP(+g('data-pe').dataset.pe);return}
+  if(g('data-pg')){PQ.page+=+g('data-pg').dataset.pg;plist();return}
+  if(g('data-mv')){const [k,d]=g('data-mv').dataset.mv.split(':').map(Number),a=EP.order,[x]=a.splice(k,1);a.splice(d===0?0:k+d,0,x);ephoto();return}
+  if(t.id==='ecl'){$('#ov').classList.remove('on');return}
+  if(t.id==='ers'){delete TK.P[EP.key];mark();$('#ov').classList.remove('on');plist();return}
+  if(t.id==='esv'){
+    const p=EP.p,o={},d=$('#ed').value.trim(),orig=(p.photos||[]).map(idOf);
+    if(d!==(p.description||'').trim())o.description=d;
+    if(EP.order.join('|')!==orig.join('|'))o.order=EP.order;
+    if(Object.keys(o).length)TK.P[EP.key]=o;else delete TK.P[EP.key];
+    mark();$('#ov').classList.remove('on');plist();return}
+  if(t.id==='addb'){TK.B.push({id:Date.now(),title:'',subtitle:'',image:'',active:true,sort:TK.B.length});mark();banTab();return}
+  if(g('data-delb')){if(confirm('Hapus banner ini?')){TK.B=TK.B.filter(b=>String(b.id)!==g('data-delb').dataset.delb);mark();banTab()}return}
+  if(g('data-clr')){const box=t.closest('.im');setPath(box.dataset.path,'');prev(box,'');return}
+});
+document.addEventListener('input',e=>{if(e.target.id==='pq'){PQ.q=e.target.value;PQ.page=0;plist()}});
+document.addEventListener('change',e=>{if(e.target.id==='pc'){PQ.cat=+e.target.value;PQ.page=0;plist()}});
+/* ---------- Mulai ---------- */
+(async()=>{
+  if(!CFG)return setup();
+  $('#app').innerHTML='<div class="login"><p class="mu">Memuat data…</p></div>';
+  try{await loadAll();shell()}catch(e){setup(e.message||String(e))}
+})();
+</script></body></html>
