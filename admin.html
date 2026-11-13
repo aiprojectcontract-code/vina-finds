@@ -55,10 +55,11 @@ const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.sp
 async function put(p,content,msg,sha,repo){const body={message:msg,content};if(!repo)body.branch=CFG.branch;if(sha)body.sha=sha;return fetch(API(p,repo),{method:'PUT',headers:{...H(),'Content-Type':'application/json'},body:JSON.stringify(body)})}
 async function loadAll(){
   const t=await rd('toko.json');
-  if(t){const j=await t.json();SHA=j.sha;TK=JSON.parse(dec(j.content))}else{SHA=null;TK={}}
+  if(t){const j=await t.json();SHA=j.sha;const txt=dec(j.content);try{TK=JSON.parse(txt)}catch(e){throw new Error('File toko.json di GitHub-mu rusak (isinya diawali "'+txt.slice(0,30).replace(/\s+/g,' ')+'"). Hapus file toko.json di GitHub, lalu coba masuk lagi.')}}else{SHA=null;TK={}}
   TK.S=TK.S||{};TK.catCovers=TK.catCovers||{};TK.P=TK.P||{};
   const p=await rd('produk.json',true);if(!p)throw new Error('File produk.json belum ada di repository. Buat dulu dengan alat konversi katalog.');
-  PJ=await p.json();PJ.C=PJ.C||[];PJ.P=PJ.P||[];PJ.S=PJ.S||{};PJ.B=PJ.B||[];
+  const ptxt=await p.text();try{PJ=JSON.parse(ptxt)}catch(e){throw new Error('File produk.json di GitHub-mu bukan JSON yang benar (isinya diawali "'+ptxt.slice(0,30).replace(/\s+/g,' ')+'"). Isinya harus berawalan {"generated". Buat ulang dengan alat konversi katalog, lalu unggah dengan nama persis produk.json.')}
+  PJ.C=PJ.C||[];PJ.P=PJ.P||[];PJ.S=PJ.S||{};PJ.B=PJ.B||[];
 }
 async function publish(){
   const b=$('#pub');b.disabled=true;b.textContent='Menyimpan…';
