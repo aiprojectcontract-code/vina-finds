@@ -9,6 +9,8 @@ header{background:#fff;border-bottom:1px solid var(--bd);position:sticky;top:0;z
 .hd{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.hd b{font-size:18px;margin-right:auto}
 .tab{border:1px solid var(--bd);background:#fff;color:var(--tx);border-radius:99px;padding:8px 16px;font-weight:600}.tab.on{background:var(--pr);border-color:var(--pr);color:#fff}
 main{max-width:980px;margin:0 auto;padding:18px 16px}
+.rv{background:#fbfdff;border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:8px}.rv input{margin-top:6px}
+.pill.o{background:#eef1f5;color:#6b7f99}.pill.g{background:#e1f6e8;color:#1b8a4a}.pill.y{background:#fff3d6;color:#9a6b00}
 .btn{border:0;border-radius:10px;padding:10px 16px;background:var(--pr);color:#fff;font-weight:700;display:inline-flex;gap:6px;align-items:center}.btn.s{background:var(--ac);color:var(--pd)}.btn.r{background:#fde8e8;color:var(--rd)}.btn:disabled{opacity:.5}
 .card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}.card h3{margin:0 0 6px}
 label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px}
@@ -34,28 +36,30 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nk=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
 const rp=n=>n>0?'Rp'+Number(n).toLocaleString('id-ID'):'Tanya harga';
-let CFG=JSON.parse(localStorage.getItem('vf_gh')||'null'),PJ=null,TK=null,SHA=null,dirty=false,tab='set',PREV={},PQ={q:'',cat:0,page:0};
-const PD={proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
+let CFG=JSON.parse(localStorage.getItem('vf_gh')||'null'),PJ=null,TK=null,SHA=null,dirty=false,tab='ord',PREV={},PQ={q:'',cat:0,page:0};
+const PD={dp_percent:'50',invoice_note:'Pesanan diproses setelah DP diterima. Mohon kirim bukti transfer melalui WhatsApp. Pelunasan dilakukan sebelum barang dikirim.',proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
 const GRP=[
  ['Pre Order & Hitung Mundur',[['po_label','Nama batch (contoh: Batch 13)','text'],['po_close','Tanggal & jam Pre Order ditutup (kosongkan untuk menyembunyikan hitung mundur)','dt'],['po_arrival','Estimasi tiba di Indonesia','date']]],
  ['Tautan & Kontak',[['wa','Nomor WhatsApp (format 62812xxxx, tanpa + atau spasi)','text'],['wa_group','Link grup WhatsApp (https://chat.whatsapp.com/...)','text'],['instagram','Instagram (username atau link)','text'],['tiktok','TikTok (username atau link)','text'],['facebook','Facebook (opsional)','text'],['email','Email toko','text'],['address','Alamat toko','area']]],
+ ['Invoice & Pembayaran',[['rekening','Nomor rekening (satu rekening per baris, contoh: BCA 1234567890 a.n. Nama Pemilik)','area'],['dp_percent','Persentase DP yang harus dibayar (angka, contoh: 50)','text'],['invoice_note','Catatan di bagian bawah invoice','area']]],
  ['Tampilan Landing Page',[['logo','Logo bulat (opsional)','img'],['hero_image','Gambar utama landing page (PNG transparan paling bagus)','img'],['hero_badge','Teks badge','text'],['hero_title','Judul besar','text'],['hero_sub','Sub judul','text'],['hero_desc','Deskripsi','area']]],
  ['Proses Pemesanan',[['proses_title','Judul bagian','text'],['proses_sub','Kalimat pengantar','area'],...[1,2,3,4].flatMap(i=>[['proses'+i+'_t','Langkah '+i+': judul','text'],['proses'+i+'_d','Langkah '+i+': penjelasan','area']])]]
 ];
 /* ---------- GitHub ---------- */
 const H=raw=>({Authorization:'Bearer '+CFG.token,Accept:raw?'application/vnd.github.raw+json':'application/vnd.github+json'});
-const API=p=>`https://api.github.com/repos/${CFG.repo}/contents/${p}`;
-async function rd(p,raw){const r=await fetch(API(p)+'?ref='+CFG.branch,{headers:H(raw),cache:'no-store'});if(r.status===404)return null;if(!r.ok)throw new Error('GitHub menolak permintaan (kode '+r.status+'). Periksa token dan nama repository.');return r}
+const API=(p,repo)=>`https://api.github.com/repos/${repo||CFG.repo}/contents/${p}`;
+async function rd(p,raw,repo){const r=await fetch(API(p,repo)+(repo?'':'?ref='+CFG.branch),{headers:H(raw),cache:'no-store'});if(r.status===404)return null;if(!r.ok)throw new Error('GitHub menolak permintaan (kode '+r.status+'). Periksa token dan nama repository.');return r}
 const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
 const enc=t=>{const u=new TextEncoder().encode(t);let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)};
 const b64=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result.split(',')[1]);f.readAsDataURL(b)});
-async function put(p,content,msg,sha){const body={message:msg,content,branch:CFG.branch};if(sha)body.sha=sha;return fetch(API(p),{method:'PUT',headers:{...H(),'Content-Type':'application/json'},body:JSON.stringify(body)})}
+async function put(p,content,msg,sha,repo){const body={message:msg,content};if(!repo)body.branch=CFG.branch;if(sha)body.sha=sha;return fetch(API(p,repo),{method:'PUT',headers:{...H(),'Content-Type':'application/json'},body:JSON.stringify(body)})}
 async function loadAll(){
   const t=await rd('toko.json');
-  if(t){const j=await t.json();SHA=j.sha;TK=JSON.parse(dec(j.content))}else{SHA=null;TK={}}
+  if(t){const j=await t.json();SHA=j.sha;const txt=dec(j.content);try{TK=JSON.parse(txt)}catch(e){throw new Error('File toko.json di GitHub-mu rusak (isinya diawali "'+txt.slice(0,30).replace(/\s+/g,' ')+'"). Hapus file toko.json di GitHub, lalu coba masuk lagi.')}}else{SHA=null;TK={}}
   TK.S=TK.S||{};TK.catCovers=TK.catCovers||{};TK.P=TK.P||{};
   const p=await rd('produk.json',true);if(!p)throw new Error('File produk.json belum ada di repository. Buat dulu dengan alat konversi katalog.');
-  PJ=await p.json();PJ.C=PJ.C||[];PJ.P=PJ.P||[];PJ.S=PJ.S||{};PJ.B=PJ.B||[];
+  const ptxt=await p.text();try{PJ=JSON.parse(ptxt)}catch(e){throw new Error('File produk.json di GitHub-mu bukan JSON yang benar (isinya diawali "'+ptxt.slice(0,30).replace(/\s+/g,' ')+'"). Isinya harus berawalan {"generated". Buat ulang dengan alat konversi katalog, lalu unggah dengan nama persis produk.json.')}
+  PJ.C=PJ.C||[];PJ.P=PJ.P||[];PJ.S=PJ.S||{};PJ.B=PJ.B||[];
 }
 async function publish(){
   const b=$('#pub');b.disabled=true;b.textContent='Menyimpan…';
@@ -109,21 +113,22 @@ function setup(msg){
   $('#app').innerHTML=`<div class="login"><h2 style="margin-top:0">Admin Vina Finds</h2><p class="mu">Admin ini menyimpan pengaturan langsung ke GitHub-mu, tanpa Supabase. Masukkan token sekali saja. Token disimpan hanya di browser ini.</p>
   <label>Repository (pemilik/nama)</label><input type="text" id="rp" value="${esc(CFG?CFG.repo:'aiprojectcontract-code/vina-finds')}">
   <label>Branch</label><input type="text" id="br" value="${esc(CFG?CFG.branch:'main')}">
+  <label>Repository data pesanan (PRIVATE, boleh diisi nanti)</label><input type="text" id="dr" value="${esc(CFG&&CFG.dataRepo?CFG.dataRepo:'')}" placeholder="aiprojectcontract-code/vina-finds-data">
   <label>GitHub token</label><input type="password" id="tk" placeholder="github_pat_...">
   <p class="mu">Cara membuat token: GitHub → foto profil → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Pilih "Only select repositories" lalu repository ini, dan pada Permissions → Repository permissions atur <b>Contents</b> menjadi <b>Read and write</b>.</p>
   <div class="msg" id="lm">${esc(msg||'')}</div><button class="btn" id="go" style="margin-top:12px;width:100%;justify-content:center">Masuk</button></div>`;
   $('#go').onclick=async()=>{
-    CFG={repo:$('#rp').value.trim(),branch:$('#br').value.trim()||'main',token:$('#tk').value.trim()};
+    CFG={repo:$('#rp').value.trim(),branch:$('#br').value.trim()||'main',dataRepo:$('#dr').value.trim(),token:$('#tk').value.trim()};
     if(!CFG.token||!CFG.repo.includes('/')){$('#lm').textContent='Isi repository dan token.';return}
     $('#go').disabled=true;$('#go').textContent='Memeriksa…';
     try{await loadAll();localStorage.setItem('vf_gh',JSON.stringify(CFG));shell()}catch(e){$('#lm').textContent=e.message||String(e);$('#go').disabled=false;$('#go').textContent='Masuk'}
   };
 }
 function shell(){
-  $('#app').innerHTML=`<header><div class="hd"><b>Vina Finds Admin</b>${[['set','Pengaturan'],['ban','Banner & Promo'],['cat','Kategori'],['prod','Produk']].map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join('')}<button class="btn s" id="out">Keluar</button></div></header><main id="mn"></main>`;
+  $('#app').innerHTML=`<header><div class="hd"><b>Vina Finds Admin</b>${[['ord','Pesanan & Invoice'],['set','Pengaturan'],['ban','Banner & Promo'],['cat','Kategori'],['prod','Produk']].map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join('')}<button class="btn s" id="out">Keluar</button></div></header><main id="mn"></main>`;
   show();
 }
-function show(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({set:setTab,ban:banTab,cat:catTab,prod:prodTab})[tab]();window.scrollTo(0,0)}
+function show(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({ord:ordTab,set:setTab,ban:banTab,cat:catTab,prod:prodTab})[tab]();window.scrollTo(0,0)}
 const sv=k=>TK.S[k]!==undefined?TK.S[k]:((PJ.S||{})[k]||PD[k]||'');
 function setTab(){
   $('#mn').innerHTML=GRP.map(([t,fs])=>`<div class="card"><h3>${t}</h3>${fs.map(([k,l,ty])=>{
@@ -183,6 +188,169 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.id==='pq'){PQ.q=e.target.value;PQ.page=0;plist()}});
 document.addEventListener('change',e=>{if(e.target.id==='pc'){PQ.cat=+e.target.value;PQ.page=0;plist()}});
+
+/* ---------- Pesanan & Invoice (disimpan di repository PRIVATE) ---------- */
+const rz=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
+let OD=[],OSHA=null,OLOAD=false,OF={q:'',st:''},EO=null;
+const eff=p=>p.promo_price&&+p.promo_price<+p.price?+p.promo_price:+p.price;
+const dpct=()=>+sv('dp_percent')||50;
+const oPaid=o=>(o.payments||[]).reduce((a,p)=>a+(+p.amount||0),0);
+const oTotal=o=>(o.items||[]).reduce((a,i)=>a+(+i.price||0)*(+i.qty||0),0);
+const oDP=o=>Math.round(oTotal(o)*(o.dp||dpct())/100);
+const oStat=o=>{const p=oPaid(o),t=oTotal(o);return p<=0?['Belum bayar','o']:p>=t?['Lunas','g']:['DP / sebagian','y']};
+const STG={pending:'Pending',ordered:'Ordered',arrived:'Arrived',completed:'Completed'},NXT={pending:'ordered',ordered:'arrived',arrived:'completed'};
+const dfmt=d=>new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+const normWa=v=>{let w=String(v).replace(/\D/g,'');if(w.startsWith('0'))w='62'+w.slice(1);else if(w.startsWith('8'))w='62'+w;return w};
+const rekLines=()=>String(sv('rekening')||'').split('\n').map(x=>x.trim()).filter(Boolean);
+async function loadOrders(){
+  const r=await rd('pesanan.json',false,CFG.dataRepo);
+  if(!r){OD=[];OSHA=null;return}
+  const j=await r.json();OSHA=j.sha;OD=JSON.parse(dec(j.content)).orders||[];
+}
+async function saveOrders(){
+  const body=enc(JSON.stringify({orders:OD},null,1));
+  let r=await put('pesanan.json',body,'Update pesanan',OSHA,CFG.dataRepo);
+  if(r.status===409||r.status===422){const c=await rd('pesanan.json',false,CFG.dataRepo);OSHA=c?(await c.json()).sha:null;r=await put('pesanan.json',body,'Update pesanan',OSHA,CFG.dataRepo)}
+  if(!r.ok)throw new Error('Gagal menyimpan pesanan (kode '+r.status+'). Pastikan token punya akses Contents: Read and write ke repository data.');
+  OSHA=(await r.json()).content.sha;
+}
+async function ordTab(){
+  if(!CFG.dataRepo){
+    $('#mn').innerHTML=`<div class="card"><h3>Siapkan penyimpanan pesanan</h3><p class="mu">Data pesanan berisi nama dan nomor WhatsApp customer, jadi <b>tidak boleh</b> disimpan di repository publik. Simpan di repository <b>private</b>:</p><ol class="mu"><li>Di GitHub buat repository baru bernama <b>vina-finds-data</b>, pilih <b>Private</b>, lalu Create.</li><li>Buka Settings → Developer settings → Personal access tokens → Fine-grained tokens, klik token milikmu, lalu pada Repository access tambahkan repository <b>vina-finds-data</b> (izin Contents: Read and write). Simpan.</li><li>Tulis nama repository di bawah ini.</li></ol><label>Repository data pesanan</label><input type="text" id="odr" value="aiprojectcontract-code/vina-finds-data"><button class="btn" id="odrs" style="margin-top:12px">Simpan</button><div class="msg" id="odm"></div></div>`;
+    return;
+  }
+  $('#mn').innerHTML='<div class="card mu">Memuat pesanan…</div>';
+  try{if(!OLOAD){await loadOrders();OLOAD=true}}catch(e){$('#mn').innerHTML=`<div class="card"><div class="msg">${esc(e.message||e)}\n\nPastikan repository "${esc(CFG.dataRepo)}" sudah dibuat (private) dan token punya akses ke repository itu.</div><button class="btn s" id="odrt" style="margin-top:10px">Coba lagi</button> <button class="btn s" id="odrc" style="margin-top:10px">Ubah nama repository</button></div>`;return}
+  drawOrders();
+}
+function drawOrders(){
+  const q=nk(OF.q),st=OF.st;
+  const l=OD.filter(o=>{const s=oStat(o)[0];return(!q||nk(o.po+o.name+o.wa+(o.items||[]).map(i=>i.name).join(' ')).includes(q))&&(!st||(st==='b'?s==='Belum bayar':st==='d'?s==='DP / sebagian':st==='l'?s==='Lunas':o.stage===st))}).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tot=OD.reduce((a,o)=>a+oTotal(o),0),paid=OD.reduce((a,o)=>a+oPaid(o),0);
+  $('#mn').innerHTML=`<div class="card"><h3>Pesanan & Invoice (${OD.length})</h3><p class="mu">Total pesanan ${rz(tot)} · sudah dibayar ${rz(paid)} · belum dibayar ${rz(tot-paid)}</p><div class="tb"><input type="text" id="oq" placeholder="Cari No. PO, nama, atau barang…" value="${esc(OF.q)}"><select id="ost"><option value="">Semua status</option><option value="b" ${st==='b'?'selected':''}>Belum bayar</option><option value="d" ${st==='d'?'selected':''}>DP / sebagian</option><option value="l" ${st==='l'?'selected':''}>Lunas</option>${Object.keys(STG).map(k=>`<option value="${k}" ${st===k?'selected':''}>${STG[k]}</option>`).join('')}</select></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-onew>+ Pesanan baru</button><button class="btn s" data-ocsv>Unduh CSV</button><button class="btn s" data-ojson>Unduh cadangan (JSON)</button></div></div>`
+  +(l.map(o=>{const [sl,sc]=oStat(o);return `<div class="row" data-odet="${o.id}"><div><b>${esc(o.po)} · ${esc(o.name)}</b><small>${dfmt(o.date)} · ${(o.items||[]).length} barang · Total ${rz(oTotal(o))} · Dibayar ${rz(oPaid(o))}</small></div><span class="pill ${sc}">${sl}</span><span class="pill o">${STG[o.stage]||o.stage}</span></div>`}).join('')||'<div class="mu" style="text-align:center;padding:30px">Belum ada pesanan. Klik "+ Pesanan baru".</div>');
+}
+const ORow=()=>`<div class="rv oi"><input type="text" class="on" list="plist" placeholder="Nama barang (pilih dari katalog atau ketik sendiri)"><div style="display:flex;gap:8px"><input type="text" class="os" placeholder="Ukuran"><input type="number" class="oq" min="1" value="1" placeholder="Qty"><input type="number" class="op" placeholder="Harga satuan (Rp)"></div><button class="btn r" data-orm style="margin-top:8px">Hapus barang</button></div>`;
+function oform(id){
+  const o=OD.find(x=>x.id==id);EO=o||null;
+  $('#sh').innerHTML=`<h2 style="margin-top:0">${o?'Edit pesanan':'Pesanan baru'}</h2><datalist id="plist">${PJ.P.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist>
+  <label>Tempel pesan WhatsApp dari customer (opsional, otomatis mengisi data di bawah)</label><textarea id="owa" rows="3" placeholder="Halo Vina Finds, saya ingin memesan. No. PO: ..."></textarea><button class="btn s" data-oparse style="margin-top:8px">Baca pesan</button>
+  <label>Nama customer</label><input type="text" id="onm" value="${esc(o?o.name:'')}"><label>Nomor WhatsApp</label><input type="text" id="owp" value="${esc(o?o.wa:'')}" placeholder="0812xxxxxxx">
+  <label>No. PO ${o?'':'(kosongkan untuk dibuat otomatis)'}</label><input type="text" id="opo" value="${esc(o?o.po:'')}">
+  <label>Barang pesanan</label><div id="ois">${(o&&o.items.length?o.items:[{}]).map(()=>ORow()).join('')}</div><button class="btn s" data-oadd style="margin-top:4px">+ Tambah barang</button>
+  <div style="font-size:18px;font-weight:700;margin:14px 0 0">Total: <span id="otot">Rp0</span></div>
+  <div class="msg" id="oer"></div><div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-osave>Simpan</button><button class="btn s" data-ocl>Batal</button></div>`;
+  if(o)document.querySelectorAll('#ois .oi').forEach((r,i)=>{const it=o.items[i];r.querySelector('.on').value=it.name;r.querySelector('.os').value=it.size||'';r.querySelector('.oq').value=it.qty;r.querySelector('.op').value=it.price});
+  otot();$('#ov').classList.add('on');
+}
+function otot(){let t=0;document.querySelectorAll('#ois .oi').forEach(r=>t+=(+r.querySelector('.oq').value||0)*(+r.querySelector('.op').value||0));const e=$('#otot');if(e)e.textContent=rz(t)||'Rp0';return t}
+function parseWA(t){
+  const g=r=>(t.match(r)||[])[1],items=[],re=/^\s*[-•*]\s*(.+?)\s*(?:\(([^()]*)\))?\s*x\s*(\d+)\s*=\s*Rp\.?\s*([\d.,]+)/gim;let m;
+  while((m=re.exec(t))){const q=+m[3]||1,sub=+m[4].replace(/\D/g,'');items.push({name:m[1].trim(),size:(m[2]||'').trim(),qty:q,price:Math.round(sub/q)})}
+  return{po:(g(/No\.?\s*PO\s*:\s*(\S+)/i)||'').trim(),name:(g(/Nama\s*:\s*(.+)/i)||'').trim(),wa:(g(/No\.?\s*WhatsApp\s*:\s*([\d+ \-]+)/i)||'').trim(),items};
+}
+async function osave(){
+  const er=m=>{$('#oer').textContent=m};
+  const name=$('#onm').value.trim(),wa=normWa($('#owp').value);
+  if(name.length<2)return er('Nama customer wajib diisi.');
+  if(wa.length<10||wa.length>15)return er('Nomor WhatsApp tidak valid.');
+  const items=[];
+  for(const r of document.querySelectorAll('#ois .oi')){
+    const n=r.querySelector('.on').value.trim(),pv=r.querySelector('.op').value;
+    if(!n&&pv==='')continue;
+    if(!n)return er('Isi nama barang untuk semua baris.');
+    if(pv===''||+pv<0)return er('Isi harga untuk "'+n+'".');
+    items.push({name:n,size:r.querySelector('.os').value.trim(),qty:Math.max(1,+r.querySelector('.oq').value||1),price:+pv});
+  }
+  if(!items.length)return er('Tambahkan minimal satu barang.');
+  let po=$('#opo').value.trim();if(!po)po='PO'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.floor(1000+Math.random()*9000);
+  if(OD.some(x=>x.po===po&&(!EO||x.id!==EO.id)))return er('No. PO sudah dipakai pesanan lain.');
+  const b=document.querySelector('[data-osave]');b.disabled=true;b.textContent='Menyimpan…';
+  const bak=JSON.stringify(OD);
+  if(EO)Object.assign(EO,{po,name,wa,items});else{EO={id:Date.now(),po,date:new Date().toISOString(),name,wa,items,dp:dpct(),payments:[],stage:'pending'};OD.push(EO)}
+  try{await saveOrders();$('#ov').classList.remove('on');drawOrders();odet(EO.id)}catch(e){OD=JSON.parse(bak);er(e.message||String(e));b.disabled=false;b.textContent='Simpan'}
+}
+function odet(id){
+  const o=OD.find(x=>x.id==id);if(!o)return;
+  const t=oTotal(o),paid=oPaid(o),dp=oDP(o),[sl,sc]=oStat(o),need=paid<dp?dp-paid:Math.max(0,t-paid);
+  $('#sh').innerHTML=`<h2 style="margin:0">${esc(o.po)}</h2><div class="mu">${esc(o.name)} · <a href="https://wa.me/${esc(o.wa)}" target="_blank" rel="noopener">${esc(o.wa)}</a> · ${dfmt(o.date)}</div>
+  <p><span class="pill ${sc}" style="margin:0">${sl}</span> <span class="pill o">${STG[o.stage]||o.stage}</span></p>
+  ${(o.items||[]).map(i=>`<div class="rv" style="display:flex;justify-content:space-between;gap:10px"><span>${esc(i.name)}${i.size?' ('+esc(i.size)+')':''} × ${i.qty}</span><b>${rz(i.price*i.qty)}</b></div>`).join('')}
+  <div style="display:flex;justify-content:space-between;font-size:17px;margin:10px 0"><b>Total</b><b>${rz(t)}</b></div>
+  <div class="mu">DP ${o.dp||dpct()}%: <b>${rz(dp)}</b> · Sudah dibayar: <b>${rz(paid)}</b> · Sisa: <b>${rz(Math.max(0,t-paid))}</b></div>
+  <label>Pembayaran yang sudah masuk</label>${(o.payments||[]).map((p,k)=>`<div class="rv" style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span>${dfmt(p.date)}${p.note?' – '+esc(p.note):''}</span><span><b>${rz(p.amount)}</b> <button class="btn r" data-opdel="${o.id}:${k}" style="padding:4px 10px">×</button></span></div>`).join('')||'<div class="mu">Belum ada pembayaran.</div>'}
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><input type="number" id="opa" placeholder="Jumlah (Rp)" style="flex:1;min-width:140px" value="${need||''}"><input type="text" id="opn" placeholder="Catatan (mis. DP 50%)" style="flex:1;min-width:140px"><button class="btn" data-opay="${o.id}">Catat pembayaran</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="btn" data-oinv="${o.id}">Invoice (unduh PDF)</button><a class="btn s" target="_blank" rel="noopener" href="https://wa.me/${esc(o.wa)}?text=${encodeURIComponent(invText(o))}">Kirim invoice ke WhatsApp</a>${NXT[o.stage]?`<button class="btn s" data-ost="${o.id}">Tandai ${STG[NXT[o.stage]]}</button>`:''}<button class="btn s" data-oedit="${o.id}">Edit</button><button class="btn r" data-odel="${o.id}">Hapus</button><button class="btn s" data-ocl>Tutup</button></div><div class="msg" id="oer"></div>`;
+  $('#ov').classList.add('on');
+}
+function invText(o){
+  const t=oTotal(o),dp=oDP(o),rek=rekLines();
+  return `Halo ${o.name}, berikut invoice pesanan ${o.po} dari Vina Finds:\n`+(o.items||[]).map(i=>`- ${i.name}${i.size?' ('+i.size+')':''} x${i.qty} = ${rz(i.price*i.qty)}`).join('\n')+`\n\nTotal: ${rz(t)}\nDP ${o.dp||dpct()}% yang harus dibayar: ${rz(dp)}\nSisa pelunasan: ${rz(t-dp)}`+(rek.length?`\n\nTransfer ke:\n${rek.join('\n')}`:'')+`\n\nMohon kirim bukti transfer setelah pembayaran. Terima kasih!`;
+}
+function invoiceHtml(o){
+  const t=oTotal(o),paid=oPaid(o),dp=oDP(o),pct=o.dp||dpct(),[sl]=oStat(o),rek=rekLines(),note=sv('invoice_note');
+  const lg=sv('logo')||'/favicon.png',logo=lg.startsWith('/')?location.origin+lg:lg;
+  const tgt=sv('po_arrival');
+  const css=`*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#10294a;margin:0;background:#eef4fb}.pg{max-width:780px;margin:20px auto;background:#fff;padding:36px 40px;border-radius:12px}.h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:3px solid #2f8fe8;padding-bottom:16px}.h img{width:56px;height:56px;border-radius:50%;object-fit:cover}.br{display:flex;gap:12px;align-items:center}.br b{font-size:22px;letter-spacing:.5px}.br small{display:block;color:#5f7694}.iv{text-align:right}.iv h1{margin:0;color:#2f8fe8;letter-spacing:2px;font-size:26px}.st{display:inline-block;border:2px solid #2f8fe8;color:#2f8fe8;border-radius:8px;padding:2px 10px;font-weight:700;font-size:12px;margin-top:6px}table{width:100%;border-collapse:collapse;margin:18px 0}th{background:#e3f1ff;text-align:left;padding:9px 10px;font-size:13px}td{padding:9px 10px;border-bottom:1px solid #e3edf9;font-size:14px}.r{text-align:right}.tt td{border:0;font-size:15px}.bx{background:#f4f9ff;border:1px solid #d6e8fb;border-radius:12px;padding:14px 16px;margin-top:14px}.bx h3{margin:0 0 8px;font-size:15px}.dp{font-size:20px;font-weight:800;color:#1b6fc4}.n{color:#5f7694;font-size:12.5px;line-height:1.6;margin-top:16px}.np{text-align:center;margin:14px}.np button{border:0;border-radius:10px;padding:12px 22px;background:#2f8fe8;color:#fff;font-weight:700;font-size:15px;cursor:pointer}@media print{body{background:#fff}.pg{margin:0;border-radius:0;padding:0;max-width:none}.np{display:none}}`;
+  return `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Invoice ${esc(o.po)}</title><style>${css}</style></head><body><div class="np"><button onclick="print()">Cetak / Simpan sebagai PDF</button><div style="color:#5f7694;font-size:13px;margin-top:6px">Di jendela cetak, pilih tujuan "Simpan sebagai PDF".</div></div><div class="pg">
+  <div class="h"><div class="br"><img src="${esc(logo)}" alt=""><div><b>VINA FINDS</b><small>Into The Blue | Dive Equipment</small>${sv('address')?`<small>${esc(sv('address'))}</small>`:''}${sv('wa')?`<small>WhatsApp ${esc(sv('wa'))}</small>`:''}</div></div><div class="iv"><h1>INVOICE</h1><div>${esc(o.po)}</div><div style="color:#5f7694;font-size:13px">${dfmt(o.date)}</div><span class="st">${esc(sl.toUpperCase())}</span></div></div>
+  <div style="margin-top:16px"><small style="color:#5f7694">Kepada</small><div style="font-weight:700;font-size:16px">${esc(o.name)}</div><div style="color:#5f7694">WhatsApp ${esc(o.wa)}</div></div>
+  <table><tr><th>Barang</th><th class="r">Harga</th><th class="r">Qty</th><th class="r">Subtotal</th></tr>${(o.items||[]).map(i=>`<tr><td>${esc(i.name)}${i.size?` <small style="color:#5f7694">(Ukuran ${esc(i.size)})</small>`:''}</td><td class="r">${rz(i.price)}</td><td class="r">${i.qty}</td><td class="r">${rz(i.price*i.qty)}</td></tr>`).join('')}
+  <tr class="tt"><td colspan="3" class="r"><b>Total</b></td><td class="r"><b>${rz(t)}</b></td></tr>${paid>0?`<tr class="tt"><td colspan="3" class="r">Sudah dibayar</td><td class="r">${rz(paid)}</td></tr><tr class="tt"><td colspan="3" class="r"><b>Sisa tagihan</b></td><td class="r"><b>${rz(Math.max(0,t-paid))}</b></td></tr>`:''}</table>
+  <div class="bx"><h3>Pembayaran</h3><div>DP ${pct}% yang harus dibayar:</div><div class="dp">${rz(dp)}</div><div style="color:#5f7694;font-size:13px;margin-top:4px">Sisa pelunasan setelah DP: ${rz(t-dp)}${paid>0&&paid<dp?` · Kekurangan DP: ${rz(dp-paid)}`:''}</div></div>
+  <div class="bx"><h3>Transfer ke rekening</h3>${rek.length?rek.map(x=>`<div style="font-weight:700;margin:3px 0">${esc(x)}</div>`).join(''):'<div style="color:#b04a4a">Nomor rekening belum diisi (Admin → Pengaturan → Invoice & Pembayaran).</div>'}</div>
+  ${(o.payments||[]).length?`<div class="bx"><h3>Riwayat pembayaran</h3>${o.payments.map(p=>`<div style="display:flex;justify-content:space-between;font-size:14px"><span>${dfmt(p.date)}${p.note?' – '+esc(p.note):''}</span><b>${rz(p.amount)}</b></div>`).join('')}</div>`:''}
+  <div class="n">${tgt?`Estimasi tiba di Indonesia: <b>${dfmt(tgt+'T12:00:00+07:00')}</b><br>`:''}${esc(note||'')}</div></div></body></html>`;
+}
+function ocsv(){
+  const rows=[['No. PO','Tanggal','Nama','WhatsApp','Barang','Total','Dibayar','Status bayar','Tahap']].concat(OD.map(o=>[o.po,new Date(o.date).toISOString().slice(0,10),o.name,o.wa,(o.items||[]).map(i=>`${i.name}${i.size?' ('+i.size+')':''} x${i.qty}`).join('; '),oTotal(o),oPaid(o),oStat(o)[0],STG[o.stage]||o.stage]));
+  return '\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+}
+const dl=(name,text,type)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()};
+document.addEventListener('click',async e=>{
+  const t=e.target,g=a=>t.closest('['+a+']'),er=m=>{const x=$('#oer');if(x)x.textContent=m};
+  if(t.id==='odrs'){const v=$('#odr').value.trim();if(!v.includes('/')){$('#odm').textContent='Tulis dengan format pemilik/nama-repository.';return}CFG.dataRepo=v;localStorage.setItem('vf_gh',JSON.stringify(CFG));OLOAD=false;ordTab();return}
+  if(t.id==='odrt'){OLOAD=false;ordTab();return}
+  if(t.id==='odrc'){CFG.dataRepo='';localStorage.setItem('vf_gh',JSON.stringify(CFG));ordTab();return}
+  if(g('data-onew')){oform();return}
+  if(g('data-odet')){odet(g('data-odet').dataset.odet);return}
+  if(g('data-ocl')){$('#ov').classList.remove('on');return}
+  if(g('data-oadd')){$('#ois').insertAdjacentHTML('beforeend',ORow());return}
+  if(g('data-orm')){if(document.querySelectorAll('#ois .oi').length>1){g('data-orm').closest('.oi').remove();otot()}return}
+  if(g('data-oparse')){
+    const r=parseWA($('#owa').value);
+    if(!r.items.length&&!r.name&&!r.po){er('Pesan tidak dikenali. Pastikan memakai pesan dari website (berisi No. PO, Nama, dan daftar barang).');return}
+    if(r.name)$('#onm').value=r.name;if(r.wa)$('#owp').value=r.wa;if(r.po)$('#opo').value=r.po;
+    if(r.items.length){$('#ois').innerHTML=r.items.map(()=>ORow()).join('');document.querySelectorAll('#ois .oi').forEach((row,i)=>{const it=r.items[i];row.querySelector('.on').value=it.name;row.querySelector('.os').value=it.size;row.querySelector('.oq').value=it.qty;row.querySelector('.op').value=it.price})}
+    otot();er('');return}
+  if(g('data-osave')){osave();return}
+  if(g('data-oedit')){oform(g('data-oedit').dataset.oedit);return}
+  if(g('data-odel')){const id=g('data-odel').dataset.odel;if(!confirm('Hapus pesanan ini? Tidak bisa dibatalkan.'))return;const bak=JSON.stringify(OD);OD=OD.filter(x=>String(x.id)!==id);try{await saveOrders();$('#ov').classList.remove('on');drawOrders()}catch(x){OD=JSON.parse(bak);er(x.message||String(x))}return}
+  if(g('data-opay')){
+    const o=OD.find(x=>String(x.id)===g('data-opay').dataset.opay),a=+$('#opa').value;if(!(a>0)){er('Isi jumlah pembayaran.');return}
+    const bak=JSON.stringify(OD);(o.payments=o.payments||[]).push({date:new Date().toISOString(),amount:a,note:$('#opn').value.trim()});
+    try{await saveOrders();drawOrders();odet(o.id)}catch(x){OD=JSON.parse(bak);er(x.message||String(x))}return}
+  if(g('data-opdel')){
+    const [id,k]=g('data-opdel').dataset.opdel.split(':'),o=OD.find(x=>String(x.id)===id);if(!confirm('Hapus catatan pembayaran ini?'))return;
+    const bak=JSON.stringify(OD);o.payments.splice(+k,1);
+    try{await saveOrders();drawOrders();odet(o.id)}catch(x){OD=JSON.parse(bak);er(x.message||String(x))}return}
+  if(g('data-ost')){
+    const o=OD.find(x=>String(x.id)===g('data-ost').dataset.ost),bak=JSON.stringify(OD);o.stage=NXT[o.stage];
+    try{await saveOrders();drawOrders();odet(o.id)}catch(x){OD=JSON.parse(bak);er(x.message||String(x))}return}
+  if(g('data-oinv')){
+    const o=OD.find(x=>String(x.id)===g('data-oinv').dataset.oinv);
+    const w=window.open(URL.createObjectURL(new Blob([invoiceHtml(o)],{type:'text/html'})),'_blank');
+    if(!w)er('Browser memblokir jendela baru. Izinkan pop-up untuk situs ini.');return}
+  if(g('data-ocsv')){dl('pesanan-vina-finds.csv',ocsv(),'text/csv;charset=utf-8');return}
+  if(g('data-ojson')){dl('cadangan-pesanan.json',JSON.stringify({orders:OD},null,1),'application/json');return}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='oq'){OF.q=t.value;drawOrders();const i=$('#oq');i.focus();i.setSelectionRange(i.value.length,i.value.length);return}
+  if(t.classList.contains('on')){const p=PJ.P.find(x=>nk(x.name)===nk(t.value));if(p){const r=t.closest('.oi'),pr=r.querySelector('.op');if(!pr.value&&eff(p)>0)pr.value=eff(p);if(p.sizes&&p.sizes.length)r.querySelector('.os').placeholder='Ukuran: '+p.sizes.join(' / ')}otot();return}
+  if(t.classList.contains('oq')||t.classList.contains('op'))otot();
+});
+document.addEventListener('change',e=>{if(e.target.id==='ost'){OF.st=e.target.value;drawOrders()}});
 /* ---------- Mulai ---------- */
 (async()=>{
   if(!CFG)return setup();
