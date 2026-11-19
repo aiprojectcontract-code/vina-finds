@@ -88,22 +88,62 @@
    ]
   }
  },
- "B": [
+ "B": [],
+ "ship_opts": [
   {
-   "id": 1795091520470,
-   "title": "Jadi yang pertama TAU!",
-   "subtitle": "",
-   "image": "https://lh3.googleusercontent.com/d/1ef3yBk2yv8SB1XM876dB7o8XzDdLIyQP=w1200",
-   "active": true,
-   "sort": 1
+   "n": "Jalur Laut",
+   "p": 0,
+   "note": "Lebih hemat, estimasi tiba lebih lama"
   },
   {
-   "id": 1795091550546,
-   "title": "Promo 12.12",
-   "subtitle": "get FREE gift for every purchase",
-   "image": "https://lh3.googleusercontent.com/d/1Rn0gsylIdssIofBMg_UItaK8dTCB2QXK=w1200",
-   "active": true,
-   "sort": 2
+   "n": "Jalur Udara",
+   "p": 0,
+   "note": "Lebih cepat, ada biaya tambahan"
   }
- ]
+ ],
+ "guides": [
+  {
+   "t": "Memilih ukuran",
+   "d": "Cara mengukur kaki dan membaca size chart.",
+   "body": "Ukur panjang kakimu dari tumit sampai ujung jari terpanjang, lalu bandingkan dengan size chart pada produk. Kalau ragu di antara dua ukuran, kirim panjang kakimu ke admin supaya dibantu memilih."
+  },
+  {
+   "t": "Alat dive pertama",
+   "d": "Mana yang dibeli lebih dulu.",
+   "body": "Untuk pemula, mulai dari mask, snorkel, dan fins. Perlengkapan lain seperti wetsuit bisa menyusul setelah kamu tahu kebutuhanmu. Tanyakan ke admin kalau butuh rekomendasi sesuai budget."
+  },
+  {
+   "t": "Jalur laut atau udara",
+   "d": "Bedanya dan kapan memilih masing-masing.",
+   "body": "Jalur laut lebih hemat tetapi barang tiba lebih lama. Jalur udara lebih cepat dengan biaya lebih tinggi. Pilih sesuai kapan kamu membutuhkan barangnya. Estimasi terbaru bisa ditanyakan ke admin."
+  }
+ ],
+ "faq": [
+  {
+   "q": "Bayarnya bagaimana?",
+   "a": "DP 50% untuk mengamankan slot, sisanya dilunasi saat barang tiba. Detail pembayaran hanya dikirim lewat WhatsApp resmi toko."
+  },
+  {
+   "q": "Pre-Order atau ready stock, bedanya apa?",
+   "a": "Pre-Order lebih hemat tetapi perlu menunggu barang tiba. Ready stock sudah ada dan langsung dikirim, dengan harga sedikit lebih tinggi."
+  },
+  {
+   "q": "Jalur laut dan jalur udara bedanya apa?",
+   "a": "Jalur laut lebih hemat dengan waktu tiba lebih lama. Jalur udara lebih cepat dengan biaya tambahan. Pilihan ini muncul di halaman produk."
+  },
+  {
+   "q": "Bingung memilih ukuran atau bahan?",
+   "a": "Kirim tinggi, berat, dan panjang kakimu ke admin lewat WhatsApp, nanti dipilihkan. Bacaan singkat juga ada di bagian Panduan."
+  },
+  {
+   "q": "Barang yang kuterima rusak atau salah?",
+   "a": "Rekam video unboxing dari paket yang masih tersegel, lalu kirim ke admin untuk dibantu prosesnya."
+  },
+  {
+   "q": "Yang kucari tidak ada di katalog?",
+   "a": "Kirim foto atau link barangnya lewat tombol Request barang, kami bantu carikan."
+  }
+ ],
+ "T": [],
+ "R": []
 }
