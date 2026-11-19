@@ -37,13 +37,21 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const nk=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
 const rp=n=>n>0?'Rp'+Number(n).toLocaleString('id-ID'):'Tanya harga';
 let CFG=JSON.parse(localStorage.getItem('vf_gh')||'null'),PJ=null,TK=null,SHA=null,dirty=false,tab='ord',PREV={},PQ={q:'',cat:0,page:0};
-const PD={dp_percent:'50',invoice_note:'Pesanan diproses setelah DP diterima. Mohon kirim bukti transfer melalui WhatsApp. Pelunasan dilakukan sebelum barang dikirim.',proses_title:'Proses Pemesanan',proses_sub:'Hanya empat langkah mudah untuk mendapatkan produk import berkualitas dari Vina Finds.',proses1_t:'Pilih Produk',proses1_d:'Pilih produk import sesuai kebutuhan Anda melalui katalog kami.',proses2_t:'Hubungi WhatsApp',proses2_d:'Kirim daftar produk kepada admin untuk mendapatkan penawaran terbaik.',proses3_t:'Pembayaran',proses3_d:'Admin akan mengirim total invoice beserta estimasi waktu pengiriman.',proses4_t:'Packing & Pengiriman',proses4_d:'Produk dipacking dengan aman lalu dikirim menggunakan ekspedisi terpercaya.'};
+const DEF={"announce": "", "hero_badge": "Import Dive Equipment", "hero_title": "Alat dive import, langsung dari supplier", "hero_sub": "Fins, mask, snorkel, wetsuit, dan perlengkapan dive lainnya. Bingung memilih? Tanya admin kami.", "katalog_title": "Katalog", "katalog_note": "Harga yang tertera adalah harga mulai dari. Pilih bahan dan jalur pengiriman untuk melihat harga akhirnya.", "cara_title": "Cara pesan", "cara_sub": "Mau hemat atau mau cepat? Dua-duanya bisa.", "po_card_t": "Pre-Order", "po_card_d": "Lebih hemat, tapi perlu menunggu barang tiba. Slot terbatas dan dibuka per batch.", "rs_card_t": "Ready Stock", "rs_card_d": "Butuh cepat? Ambil yang tersedia dan langsung dikirim. Stok bisa berubah, tanyakan dulu ke admin.", "proses_title": "Alur Pre-Order", "proses_sub": "Semuanya lewat WhatsApp, dari tanya-tanya sampai barang tiba.", "proses1_t": "Pilih dan konsultasi", "proses1_d": "Pilih barang dari katalog. Bingung ukuran atau bahan? Tanyakan ke admin sebelum memesan.", "proses2_t": "DP 50%", "proses2_d": "Konfirmasi pesanan, lalu bayar DP agar slotmu aman.", "proses3_t": "Proses batch", "proses3_d": "Barang dibelikan dari supplier dan dikirim lewat jalur laut atau udara sesuai pilihanmu.", "proses4_t": "Pelunasan dan kirim", "proses4_d": "Lunasi saat barang tiba, lalu barang dikirim ke alamatmu.", "custom_title": "Punya permintaan khusus?", "custom_sub": "Motif, ukuran, atau spesifikasi tertentu bisa dibicarakan lebih dulu.", "custom1_t": "Siapkan permintaan", "custom1_d": "Kumpulkan contoh gambar, ukuran, atau link barang yang kamu inginkan.", "custom2_t": "Kirim ke admin", "custom2_d": "Detail, harga, dan estimasi waktu dibahas lewat WhatsApp.", "custom3_t": "Diproses", "custom3_d": "Setelah cocok, pesananmu mulai diproses.", "custom_btn": "Kirim permintaanmu", "kirim_title": "Pengiriman", "kirim_text": "Semua barang dikemas dengan plastik dan bubble wrap sebelum dikirim. Rekam video unboxing dari paket yang masih tersegel, untuk jaga-jaga jika ada masalah.", "kirim_carriers": "JNE, J&T, AnterAja", "sewa_title": "Sewa alat", "sewa_note": "Mau coba dulu atau butuh alat untuk trip? Sewa saja. Harga per hari.", "testi_title": "Kata mereka", "about_title": "Tentang Vina Finds", "about_text": "Vina Finds adalah toko alat dive import yang membantu kamu menemukan perlengkapan yang pas dengan harga bersahabat.", "request_title": "Cari gear lain?", "request_text": "Barang yang kamu cari belum ada di katalog? Kirim foto atau link-nya, kami bantu carikan.", "request_btn": "Request barang", "faq_title": "Tanya jawab", "guide_title": "Panduan", "guide_sub": "Bacaan singkat sebelum kamu memesan, supaya tidak salah pilih.", "dp_percent": "50", "guides": [{"t": "Memilih ukuran", "d": "Cara mengukur kaki dan membaca size chart.", "body": "Ukur panjang kakimu dari tumit sampai ujung jari terpanjang, lalu bandingkan dengan size chart pada produk. Kalau ragu di antara dua ukuran, kirim panjang kakimu ke admin supaya dibantu memilih."}, {"t": "Alat dive pertama", "d": "Mana yang dibeli lebih dulu.", "body": "Untuk pemula, mulai dari mask, snorkel, dan fins. Perlengkapan lain seperti wetsuit bisa menyusul setelah kamu tahu kebutuhanmu. Tanyakan ke admin kalau butuh rekomendasi sesuai budget."}, {"t": "Jalur laut atau udara", "d": "Bedanya dan kapan memilih masing-masing.", "body": "Jalur laut lebih hemat tetapi barang tiba lebih lama. Jalur udara lebih cepat dengan biaya lebih tinggi. Pilih sesuai kapan kamu membutuhkan barangnya. Estimasi terbaru bisa ditanyakan ke admin."}], "faq": [{"q": "Bayarnya bagaimana?", "a": "DP 50% untuk mengamankan slot, sisanya dilunasi saat barang tiba. Detail pembayaran hanya dikirim lewat WhatsApp resmi toko."}, {"q": "Pre-Order atau ready stock, bedanya apa?", "a": "Pre-Order lebih hemat tetapi perlu menunggu barang tiba. Ready stock sudah ada dan langsung dikirim, dengan harga sedikit lebih tinggi."}, {"q": "Jalur laut dan jalur udara bedanya apa?", "a": "Jalur laut lebih hemat dengan waktu tiba lebih lama. Jalur udara lebih cepat dengan biaya tambahan. Pilihan ini muncul di halaman produk."}, {"q": "Bingung memilih ukuran atau bahan?", "a": "Kirim tinggi, berat, dan panjang kakimu ke admin lewat WhatsApp, nanti dipilihkan. Bacaan singkat juga ada di bagian Panduan."}, {"q": "Barang yang kuterima rusak atau salah?", "a": "Rekam video unboxing dari paket yang masih tersegel, lalu kirim ke admin untuk dibantu prosesnya."}, {"q": "Yang kucari tidak ada di katalog?", "a": "Kirim foto atau link barangnya lewat tombol Request barang, kami bantu carikan."}], "ship_opts": [{"n": "Jalur Laut", "p": 0, "note": "Lebih hemat, estimasi tiba lebih lama"}, {"n": "Jalur Udara", "p": 0, "note": "Lebih cepat, ada biaya tambahan"}]};
+const PD={invoice_note:'Pesanan diproses setelah DP diterima. Mohon kirim bukti transfer melalui WhatsApp. Pelunasan dilakukan sebelum barang dikirim.',...Object.fromEntries(Object.entries(DEF).filter(([k,v])=>typeof v==='string'))};
+const clone=x=>JSON.parse(JSON.stringify(x));
 const GRP=[
- ['Pre Order & Hitung Mundur',[['po_label','Nama batch (contoh: Batch 13)','text'],['po_close','Tanggal & jam Pre Order ditutup (kosongkan untuk menyembunyikan hitung mundur)','dt'],['po_arrival','Estimasi tiba di Indonesia','date']]],
+ ['Pengumuman & Hitung Mundur Pre-Order',[['announce','Teks pengumuman di paling atas halaman (kosongkan untuk menyembunyikan)','text'],['po_label','Nama batch (contoh: Batch 13)','text'],['po_close','Tanggal & jam Pre-Order ditutup (kosongkan untuk menyembunyikan hitung mundur)','dt'],['po_arrival','Estimasi tiba di Indonesia','date']]],
  ['Tautan & Kontak',[['wa','Nomor WhatsApp (format 62812xxxx, tanpa + atau spasi)','text'],['wa_group','Link grup WhatsApp (https://chat.whatsapp.com/...)','text'],['instagram','Instagram (username atau link)','text'],['tiktok','TikTok (username atau link)','text'],['facebook','Facebook (opsional)','text'],['email','Email toko','text'],['address','Alamat toko','area']]],
  ['Invoice & Pembayaran',[['rekening','Nomor rekening (satu rekening per baris, contoh: BCA 1234567890 a.n. Nama Pemilik)','area'],['dp_percent','Persentase DP yang harus dibayar (angka, contoh: 50)','text'],['invoice_note','Catatan di bagian bawah invoice','area']]],
- ['Tampilan Landing Page',[['logo','Logo bulat (opsional)','img'],['hero_image','Gambar utama landing page (PNG transparan paling bagus)','img'],['hero_badge','Teks badge','text'],['hero_title','Judul besar','text'],['hero_sub','Sub judul','text'],['hero_desc','Deskripsi','area']]],
- ['Proses Pemesanan',[['proses_title','Judul bagian','text'],['proses_sub','Kalimat pengantar','area'],...[1,2,3,4].flatMap(i=>[['proses'+i+'_t','Langkah '+i+': judul','text'],['proses'+i+'_d','Langkah '+i+': penjelasan','area']])]]
+ ['Logo & Teks Cadangan Beranda (dipakai bila tidak ada slide)',[['logo','Logo bulat (opsional)','img'],['hero_badge','Teks kecil di atas judul','text'],['hero_title','Judul besar','text'],['hero_sub','Teks pendek','area']]],
+ ['Katalog',[['katalog_title','Judul bagian','text'],['katalog_note','Keterangan di bawah judul','area']]],
+ ['Cara Pesan',[['cara_title','Judul bagian','text'],['cara_sub','Kalimat pengantar','text'],['po_card_t','Kartu 1: judul','text'],['po_card_d','Kartu 1: penjelasan','area'],['rs_card_t','Kartu 2: judul','text'],['rs_card_d','Kartu 2: penjelasan','area']]],
+ ['Alur Pre-Order',[['proses_title','Judul','text'],['proses_sub','Kalimat pengantar','text'],...[1,2,3,4].flatMap(i=>[['proses'+i+'_t','Langkah '+i+': judul','text'],['proses'+i+'_d','Langkah '+i+': penjelasan','area']])]],
+ ['Permintaan Khusus / Desain Sendiri (kosongkan judul untuk menyembunyikan bagian ini)',[['custom_title','Judul','text'],['custom_sub','Kalimat pengantar','text'],...[1,2,3].flatMap(i=>[['custom'+i+'_t','Langkah '+i+': judul','text'],['custom'+i+'_d','Langkah '+i+': penjelasan','area']]),['custom_btn','Teks tombol WhatsApp','text']]],
+ ['Pengiriman',[['kirim_title','Judul','text'],['kirim_text','Teks penjelasan','area'],['kirim_carriers','Daftar ekspedisi (pisahkan dengan koma)','text']]],
+ ['Judul Bagian Lain',[['guide_title','Judul Panduan','text'],['guide_sub','Kalimat pengantar Panduan','text'],['sewa_title','Judul Sewa alat','text'],['sewa_note','Keterangan Sewa alat','text'],['testi_title','Judul Testimoni','text'],['faq_title','Judul Tanya jawab','text']]],
+ ['Tentang & Request Barang (kosongkan judul Tentang untuk menyembunyikan)',[['about_title','Judul Tentang','text'],['about_text','Teks Tentang (juga tampil di footer)','area'],['request_title','Judul Request barang','text'],['request_text','Teks Request barang','area'],['request_btn','Teks tombol Request','text']]]
 ];
 /* ---------- GitHub ---------- */
 const H=raw=>({Authorization:'Bearer '+CFG.token,Accept:raw?'application/vnd.github.raw+json':'application/vnd.github+json'});
@@ -91,6 +99,7 @@ function setPath(path,val){
   if(t==='S')TK.S[k]=val;
   else if(t==='B'){const b=TK.B.find(x=>String(x.id)===k);if(b)b.image=val}
   else if(t==='C'){if(val)TK.catCovers[k]=val;else delete TK.catCovers[k]}
+  else if(t==='L'){const [lk,li,lf]=k.split(':');getList(lk)[+li][lf]=val}
   mark();
 }
 const prev=(box,val)=>{box.querySelector('.pv').innerHTML=val?`<img src="${esc(PREV[val]||val)}" alt="">`:'Belum ada gambar'};
@@ -125,10 +134,10 @@ function setup(msg){
   };
 }
 function shell(){
-  $('#app').innerHTML=`<header><div class="hd"><b>Vina Finds Admin</b>${[['ord','Pesanan & Invoice'],['set','Pengaturan'],['ban','Banner & Promo'],['cat','Kategori'],['prod','Produk']].map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join('')}<button class="btn s" id="out">Keluar</button></div></header><main id="mn"></main>`;
+  $('#app').innerHTML=`<header><div class="hd"><b>Vina Finds Admin</b>${[['ord','Pesanan & Invoice'],['set','Pengaturan Halaman'],['ban','Slide Beranda'],['lst','Konten'],['cat','Kategori'],['prod','Produk']].map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-t="${t[0]}">${t[1]}</button>`).join('')}<button class="btn s" id="out">Keluar</button></div></header><main id="mn"></main>`;
   show();
 }
-function show(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({ord:ordTab,set:setTab,ban:banTab,cat:catTab,prod:prodTab})[tab]();window.scrollTo(0,0)}
+function show(){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));({ord:ordTab,set:setTab,ban:banTab,lst:lstTab,cat:catTab,prod:prodTab})[tab]();window.scrollTo(0,0)}
 const sv=k=>TK.S[k]!==undefined?TK.S[k]:((PJ.S||{})[k]||PD[k]||'');
 function setTab(){
   $('#mn').innerHTML=GRP.map(([t,fs])=>`<div class="card"><h3>${t}</h3>${fs.map(([k,l,ty])=>{
@@ -140,7 +149,7 @@ function setTab(){
     return h+`<input type="text" data-s="${k}" value="${esc(v)}">`}).join('')}</div>`).join('');
 }
 document.addEventListener('input',e=>{const k=e.target.dataset.s;if(!k)return;TK.S[k]=e.target.dataset.dt?(e.target.value?new Date(e.target.value).toISOString():''):e.target.value;mark()});
-function banTab(){
+function banTabOld(){
   if(!TK.B)TK.B=JSON.parse(JSON.stringify(PJ.B||[]));
   $('#mn').innerHTML=`<div class="card"><h3>Banner & Promo</h3><p class="mu">Banner tampil bergantian di halaman utama. Gambar yang disarankan berukuran lebar 1200 x 400 px.</p><button class="btn" id="addb">+ Tambah banner</button></div>`+TK.B.map(b=>`<div class="card" data-bid="${b.id}"><label>Judul promo</label><input type="text" data-bf="title" value="${esc(b.title)}"><label>Teks tambahan</label><input type="text" data-bf="subtitle" value="${esc(b.subtitle)}"><label>Gambar banner</label>${iw('B:'+b.id,b.image)}<label>Urutan tampil (angka kecil tampil duluan)</label><input type="number" data-bf="sort" value="${b.sort??0}"><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" data-bf="active" ${b.active!==false?'checked':''}> Tampilkan di website</label><button class="btn r" data-delb="${b.id}" style="margin-top:12px">Hapus banner</button></div>`).join('');
 }
@@ -156,15 +165,20 @@ function prodTab(){
 function plist(){
   const l=PJ.P.map((p,i)=>({p,i})).filter(({p})=>(!PQ.cat||p.category_id===PQ.cat)&&nk(p.name).includes(nk(PQ.q))),N=30,pg=Math.min(PQ.page,Math.max(0,Math.ceil(l.length/N)-1));PQ.page=pg;
   $('#pl').innerHTML=l.slice(pg*N,pg*N+N).map(({p,i})=>{const ov=TK.P[pkey(p)]||{},ph=ordered(p.photos||[],ov.order),d=('description' in ov?ov.description:p.description);
-    return `<div class="row" data-pe="${i}">${ph[0]?`<img loading="lazy" src="${esc(thumb(ph[0]))}" alt="">`:'<span class="no">–</span>'}<div><b>${esc(p.name)}</b><small>${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)} · ${(p.photos||[]).length} foto</small></div>${d?'<span class="pill">Ada deskripsi</span>':''}${ov.order?'<span class="pill">Sampul diubah</span>':''}</div>`}).join('')||'<div class="mu" style="text-align:center;padding:30px">Tidak ada produk.</div>'
+    return `<div class="row" data-pe="${i}">${ph[0]?`<img loading="lazy" src="${esc(thumb(ph[0]))}" alt="">`:'<span class="no">–</span>'}<div><b>${esc(p.name)}</b><small>${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)} · ${(p.photos||[]).length} foto</small></div>${d?'<span class="pill">Ada deskripsi</span>':''}${ov.order?'<span class="pill">Sampul diubah</span>':''}${ov.mats&&ov.mats.length?'<span class="pill">'+ov.mats.length+' varian</span>':''}${ov.type==='ready'?'<span class="pill g">Ready</span>':''}</div>`}).join('')||'<div class="mu" style="text-align:center;padding:30px">Tidak ada produk.</div>'
   +(l.length>N?`<div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px"><button class="btn s" data-pg="-1" ${pg?'':'disabled'}>‹ Sebelumnya</button><span class="mu">Halaman ${pg+1} dari ${Math.ceil(l.length/N)}</span><button class="btn s" data-pg="1" ${(pg+1)*N<l.length?'':'disabled'}>Berikutnya ›</button></div>`:'');
 }
 let EP=null;
 function editP(i){
   const p=PJ.P[i],key=pkey(p),ov=TK.P[key]||{};
-  EP={p,key,order:ordered(p.photos||[],ov.order).map(idOf),map:new Map((p.photos||[]).map(u=>[idOf(u),u])),desc:'description' in ov?ov.description:(p.description||'')};
-  $('#sh').innerHTML=`<h2 style="margin-top:0">${esc(p.name)}</h2><div class="mu">${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)}</div><label>Foto produk (foto pertama menjadi sampul)</label><div class="ph" id="eph"></div><label>Deskripsi produk</label><textarea id="ed" rows="6" placeholder="Tulis deskripsi produk…">${esc(EP.desc)}</textarea><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="esv">Simpan</button><button class="btn r" id="ers">Kembalikan ke awal</button><button class="btn s" id="ecl">Tutup</button></div>`;
-  ephoto();$('#ov').classList.add('on');
+  EP={p,key,mats:ov.mats?clone(ov.mats):[],ship:ov.ship?clone(ov.ship):[],noship:!!ov.noship,type:ov.type||'po',order:ordered(p.photos||[],ov.order).map(idOf),map:new Map((p.photos||[]).map(u=>[idOf(u),u])),desc:'description' in ov?ov.description:(p.description||'')};
+  $('#sh').innerHTML=`<h2 style="margin-top:0">${esc(p.name)}</h2><div class="mu">${esc(cname(p)||'Tanpa kategori')} · ${rp(p.price)}</div><label>Foto produk (foto pertama menjadi sampul)</label><div class="ph" id="eph"></div><label>Deskripsi produk</label><textarea id="ed" rows="6" placeholder="Tulis deskripsi produk…">${esc(EP.desc)}</textarea>
+  <label>Status produk</label><select id="etp"><option value="po">Pre-Order</option><option value="ready">Ready Stock</option></select>
+  <label>Varian bahan / tipe (mis. Fiber dan Carbon). Isi nama dan harga tiap varian. Kosongkan jika produk tidak punya varian.</label><div id="emats"></div><button class="btn s" data-emadd>+ Tambah varian</button>
+  <label>Jalur pengiriman khusus produk ini (kosongkan untuk memakai pengaturan umum di tab Konten)</label><div id="eship"></div><button class="btn s" data-esadd>+ Tambah jalur</button>
+  <label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input type="checkbox" id="ens"> Produk ini tanpa pilihan jalur pengiriman</label>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button class="btn" id="esv">Simpan</button><button class="btn r" id="ers">Kembalikan ke awal</button><button class="btn s" id="ecl">Tutup</button></div>`;
+  ephoto();$('#etp').value=EP.type;$('#ens').checked=EP.noship;erows();$('#ov').classList.add('on');
 }
 function ephoto(){$('#eph').innerHTML=EP.order.map((id,k)=>`<div class="${k?'':'c'}"><img src="${esc(thumb(EP.map.get(id)))}" alt=""><div class="a"><button data-mv="${k}:-1" ${k?'':'disabled'}>◀</button><button data-mv="${k}:0" ${k?'':'disabled'} title="Jadikan sampul">★</button><button data-mv="${k}:1" ${k<EP.order.length-1?'':'disabled'}>▶</button></div></div>`).join('')||'<span class="mu">Produk ini belum punya foto.</span>'}
 document.addEventListener('click',e=>{
@@ -180,6 +194,8 @@ document.addEventListener('click',e=>{
     const p=EP.p,o={},d=$('#ed').value.trim(),orig=(p.photos||[]).map(idOf);
     if(d!==(p.description||'').trim())o.description=d;
     if(EP.order.join('|')!==orig.join('|'))o.order=EP.order;
+    const vm=EP.mats.filter(m=>String(m.n).trim()).map(m=>({n:String(m.n).trim(),p:+m.p||0})),vs=EP.ship.filter(m=>String(m.n).trim()).map(m=>({n:String(m.n).trim(),p:+m.p||0,note:String(m.note||'').trim()}));
+    if(vm.length)o.mats=vm;if(vs.length)o.ship=vs;if($('#ens').checked)o.noship=true;if($('#etp').value==='ready')o.type='ready';
     if(Object.keys(o).length)TK.P[EP.key]=o;else delete TK.P[EP.key];
     mark();$('#ov').classList.remove('on');plist();return}
   if(t.id==='addb'){TK.B.push({id:Date.now(),title:'',subtitle:'',image:'',active:true,sort:TK.B.length});mark();banTab();return}
@@ -230,7 +246,7 @@ function drawOrders(){
   $('#mn').innerHTML=`<div class="card"><h3>Pesanan & Invoice (${OD.length})</h3><p class="mu">Total pesanan ${rz(tot)} · sudah dibayar ${rz(paid)} · belum dibayar ${rz(tot-paid)}</p><div class="tb"><input type="text" id="oq" placeholder="Cari No. PO, nama, atau barang…" value="${esc(OF.q)}"><select id="ost"><option value="">Semua status</option><option value="b" ${st==='b'?'selected':''}>Belum bayar</option><option value="d" ${st==='d'?'selected':''}>DP / sebagian</option><option value="l" ${st==='l'?'selected':''}>Lunas</option>${Object.keys(STG).map(k=>`<option value="${k}" ${st===k?'selected':''}>${STG[k]}</option>`).join('')}</select></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-onew>+ Pesanan baru</button><button class="btn s" data-ocsv>Unduh CSV</button><button class="btn s" data-ojson>Unduh cadangan (JSON)</button></div></div>`
   +(l.map(o=>{const [sl,sc]=oStat(o);return `<div class="row" data-odet="${o.id}"><div><b>${esc(o.po)} · ${esc(o.name)}</b><small>${dfmt(o.date)} · ${(o.items||[]).length} barang · Total ${rz(oTotal(o))} · Dibayar ${rz(oPaid(o))}</small></div><span class="pill ${sc}">${sl}</span><span class="pill o">${STG[o.stage]||o.stage}</span></div>`}).join('')||'<div class="mu" style="text-align:center;padding:30px">Belum ada pesanan. Klik "+ Pesanan baru".</div>');
 }
-const ORow=()=>`<div class="rv oi"><input type="text" class="on" list="plist" placeholder="Nama barang (pilih dari katalog atau ketik sendiri)"><div style="display:flex;gap:8px"><input type="text" class="os" placeholder="Ukuran"><input type="number" class="oq" min="1" value="1" placeholder="Qty"><input type="number" class="op" placeholder="Harga satuan (Rp)"></div><button class="btn r" data-orm style="margin-top:8px">Hapus barang</button></div>`;
+const ORow=()=>`<div class="rv oi"><input type="text" class="on" list="plist" placeholder="Nama barang (pilih dari katalog atau ketik sendiri)"><div style="display:flex;gap:8px"><input type="text" class="os" placeholder="Opsi (ukuran, bahan, jalur)"><input type="number" class="oq" min="1" value="1" placeholder="Qty"><input type="number" class="op" placeholder="Harga satuan (Rp)"></div><button class="btn r" data-orm style="margin-top:8px">Hapus barang</button></div>`;
 function oform(id){
   const o=OD.find(x=>x.id==id);EO=o||null;
   $('#sh').innerHTML=`<h2 style="margin-top:0">${o?'Edit pesanan':'Pesanan baru'}</h2><datalist id="plist">${PJ.P.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist>
@@ -295,7 +311,7 @@ function invoiceHtml(o){
   return `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Invoice ${esc(o.po)}</title><style>${css}</style></head><body><div class="np"><button onclick="print()">Cetak / Simpan sebagai PDF</button><div style="color:#5f7694;font-size:13px;margin-top:6px">Di jendela cetak, pilih tujuan "Simpan sebagai PDF".</div></div><div class="pg">
   <div class="h"><div class="br"><img src="${esc(logo)}" alt=""><div><b>VINA FINDS</b><small>Into The Blue | Dive Equipment</small>${sv('address')?`<small>${esc(sv('address'))}</small>`:''}${sv('wa')?`<small>WhatsApp ${esc(sv('wa'))}</small>`:''}</div></div><div class="iv"><h1>INVOICE</h1><div>${esc(o.po)}</div><div style="color:#5f7694;font-size:13px">${dfmt(o.date)}</div><span class="st">${esc(sl.toUpperCase())}</span></div></div>
   <div style="margin-top:16px"><small style="color:#5f7694">Kepada</small><div style="font-weight:700;font-size:16px">${esc(o.name)}</div><div style="color:#5f7694">WhatsApp ${esc(o.wa)}</div></div>
-  <table><tr><th>Barang</th><th class="r">Harga</th><th class="r">Qty</th><th class="r">Subtotal</th></tr>${(o.items||[]).map(i=>`<tr><td>${esc(i.name)}${i.size?` <small style="color:#5f7694">(Ukuran ${esc(i.size)})</small>`:''}</td><td class="r">${rz(i.price)}</td><td class="r">${i.qty}</td><td class="r">${rz(i.price*i.qty)}</td></tr>`).join('')}
+  <table><tr><th>Barang</th><th class="r">Harga</th><th class="r">Qty</th><th class="r">Subtotal</th></tr>${(o.items||[]).map(i=>`<tr><td>${esc(i.name)}${i.size?` <small style="color:#5f7694">(${esc(i.size)})</small>`:''}</td><td class="r">${rz(i.price)}</td><td class="r">${i.qty}</td><td class="r">${rz(i.price*i.qty)}</td></tr>`).join('')}
   <tr class="tt"><td colspan="3" class="r"><b>Total</b></td><td class="r"><b>${rz(t)}</b></td></tr>${paid>0?`<tr class="tt"><td colspan="3" class="r">Sudah dibayar</td><td class="r">${rz(paid)}</td></tr><tr class="tt"><td colspan="3" class="r"><b>Sisa tagihan</b></td><td class="r"><b>${rz(Math.max(0,t-paid))}</b></td></tr>`:''}</table>
   <div class="bx"><h3>Pembayaran</h3><div>DP ${pct}% yang harus dibayar:</div><div class="dp">${rz(dp)}</div><div style="color:#5f7694;font-size:13px;margin-top:4px">Sisa pelunasan setelah DP: ${rz(t-dp)}${paid>0&&paid<dp?` · Kekurangan DP: ${rz(dp-paid)}`:''}</div></div>
   <div class="bx"><h3>Transfer ke rekening</h3>${rek.length?rek.map(x=>`<div style="font-weight:700;margin:3px 0">${esc(x)}</div>`).join(''):'<div style="color:#b04a4a">Nomor rekening belum diisi (Admin → Pengaturan → Invoice & Pembayaran).</div>'}</div>
@@ -351,6 +367,44 @@ document.addEventListener('input',e=>{
   if(t.classList.contains('oq')||t.classList.contains('op'))otot();
 });
 document.addEventListener('change',e=>{if(e.target.id==='ost'){OF.st=e.target.value;drawOrders()}});
+
+/* ---------- Slide & Konten (daftar yang mudah diedit) ---------- */
+const LISTS={
+ B:['Slide beranda (hanya tulisan, tampil bergantian)','Slide',[['title','Judul besar','text'],['subtitle','Teks pendek','area'],['btn','Teks tombol (kosongkan jika tanpa tombol)','text'],['link','Link tombol: #katalog, #cara, #rent, #faq, atau https://…','text']],{}],
+ ship_opts:['Opsi jalur pengiriman (berlaku untuk semua produk, bisa diubah per produk)','Jalur',[['n','Nama jalur (mis. Jalur Laut)','text'],['p','Tambahan harga (Rp, isi 0 jika tidak ada)','num'],['note','Keterangan singkat (mis. estimasi tiba)','text']],{p:0}],
+ guides:['Panduan','Panduan',[['t','Judul','text'],['d','Ringkasan singkat','text'],['body','Isi panduan lengkap','area']],{}],
+ faq:['Tanya jawab (FAQ)','Pertanyaan',[['q','Pertanyaan','text'],['a','Jawaban','area']],{}],
+ T:['Testimoni','Testimoni',[['name','Nama','text'],['review','Isi testimoni','area'],['rating','Rating (1 sampai 5)','num']],{rating:5}],
+ R:['Sewa alat','Alat sewa',[['name','Nama alat','text'],['price','Harga sewa (Rp)','num'],['unit','Satuan (mis. per hari)','text'],['description','Deskripsi singkat','area'],['photo','Foto','img']],{price:0,unit:'per hari'}]
+};
+function getList(k){if(!Array.isArray(TK[k]))TK[k]=clone((PJ[k]&&PJ[k].length)?PJ[k]:(DEF[k]||[]));return TK[k]}
+function listCard(k){
+  const [title,noun,fs]=LISTS[k],L=getList(k);
+  return `<div class="card"><h3>${title}</h3><button class="btn" data-la="${k}">+ Tambah ${noun.toLowerCase()}</button>${L.map((it,i)=>`<div class="rv" style="margin-top:12px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${noun} ${i+1}</b><span><button class="btn s" data-lm="${k}:${i}:-1" ${i?'':'disabled'}>↑</button> <button class="btn s" data-lm="${k}:${i}:1" ${i<L.length-1?'':'disabled'}>↓</button> <button class="btn r" data-ld="${k}:${i}">Hapus</button></span></div>${fs.map(([f,l,ty])=>`<label>${l}</label>`+(ty==='img'?iw('L:'+k+':'+i+':'+f,it[f]):ty==='area'?`<textarea rows="3" data-ls="${k}:${i}:${f}">${esc(it[f])}</textarea>`:`<input type="${ty==='num'?'number':'text'}" data-ls="${k}:${i}:${f}" value="${esc(it[f]??'')}">`)).join('')}</div>`).join('')||'<p class="mu" style="margin-top:12px">Belum ada.</p>'}</div>`;
+}
+function banTab(){$('#mn').innerHTML=`<div class="card"><h3>Slide Beranda</h3><p class="mu">Slide hanya berisi tulisan dan tampil bergantian di bagian paling atas halaman utama. Jika kosong, halaman memakai teks cadangan dari Pengaturan Halaman.</p></div>`+listCard('B')}
+function lstTab(){$('#mn').innerHTML=['ship_opts','guides','faq','T','R'].map(listCard).join('')}
+const reTab=()=>{const y=scrollY;({ban:banTab,lst:lstTab})[tab]();scrollTo(0,y)};
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.ls){const [k,i,f]=t.dataset.ls.split(':');getList(k)[+i][f]=t.type==='number'?(t.value===''?'':+t.value):t.value;mark();return}
+  if(t.dataset.em){const [i,f]=t.dataset.em.split(':');EP.mats[+i][f]=t.value;return}
+  if(t.dataset.es){const [i,f]=t.dataset.es.split(':');EP.ship[+i][f]=t.value}
+});
+document.addEventListener('click',e=>{
+  const t=e.target,g=a=>t.closest('['+a+']');
+  if(g('data-la')){const k=g('data-la').dataset.la;getList(k).push({...LISTS[k][3]});mark();reTab();return}
+  if(g('data-ld')){const [k,i]=g('data-ld').dataset.ld.split(':');if(confirm('Hapus item ini?')){getList(k).splice(+i,1);mark();reTab()}return}
+  if(g('data-lm')){const [k,i,d]=g('data-lm').dataset.lm.split(':').map((x,n)=>n?+x:x),L=getList(k),[x]=L.splice(i,1);L.splice(i+d,0,x);mark();reTab();return}
+  if(g('data-emadd')){EP.mats.push({n:'',p:''});erows();return}
+  if(g('data-emd')){EP.mats.splice(+g('data-emd').dataset.emd,1);erows();return}
+  if(g('data-esadd')){EP.ship.push({n:'',p:'',note:''});erows();return}
+  if(g('data-esd')){EP.ship.splice(+g('data-esd').dataset.esd,1);erows()}
+});
+function erows(){
+  $('#emats').innerHTML=EP.mats.map((m,i)=>`<div class="rv" style="display:flex;gap:8px"><input type="text" data-em="${i}:n" placeholder="Nama (mis. Carbon)" value="${esc(m.n)}"><input type="number" data-em="${i}:p" placeholder="Harga (Rp)" value="${esc(m.p)}"><button class="btn r" data-emd="${i}">×</button></div>`).join('');
+  $('#eship').innerHTML=EP.ship.map((m,i)=>`<div class="rv"><div style="display:flex;gap:8px"><input type="text" data-es="${i}:n" placeholder="Nama jalur" value="${esc(m.n)}"><input type="number" data-es="${i}:p" placeholder="Tambahan harga (Rp)" value="${esc(m.p)}"><button class="btn r" data-esd="${i}">×</button></div><input type="text" data-es="${i}:note" placeholder="Keterangan (mis. estimasi tiba)" value="${esc(m.note||'')}"></div>`).join('');
+}
 /* ---------- Mulai ---------- */
 (async()=>{
   if(!CFG)return setup();
